@@ -6,7 +6,7 @@ import sitemap from '@astrojs/sitemap';
 export default defineConfig({
   // Change this to your real domain before deploying.
   // It powers canonical URLs, Open Graph URLs and sitemap.xml.
-  site: 'https://maneeshdhanik.dev',
+  site: 'https://maneesh-portfolio-ivory.vercel.app',
   trailingSlash: 'always',
   build: {
     format: 'directory', // /projects/sentry-medical/ -> clean, SEO-friendly URLs
