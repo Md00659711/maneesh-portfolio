@@ -1,0 +1,58 @@
+---
+// One place for all <head> SEO tags. Every page passes its own title/description;
+// anything not passed falls back to the defaults in src/config/site.ts.
+import { SITE } from '@/config/site';
+import { getOgPages, ogSlugFromPath } from '@/lib/og';
+
+interface Props {
+  title?: string;
+  description?: string;
+  image?: string;
+  type?: 'website' | 'article' | 'profile';
+  noindex?: boolean;
+  jsonLd?: Record<string, unknown> | Record<string, unknown>[];
+}
+
+const {
+  title,
+  description = SITE.description,
+  image,
+  type = 'website',
+  noindex = false,
+  jsonLd,
+} = Astro.props;
+
+const fullTitle = title ? `${title} | ${SITE.name}` : SITE.title;
+const canonical = new URL(Astro.url.pathname, Astro.site);
+// Use this page's generated share image if there is one, otherwise the home page's.
+const slug = ogSlugFromPath(Astro.url.pathname);
+const hasOwnImage = (await getOgPages()).some((p) => p.slug === slug);
+const ogImage = new URL(image ?? `/og/${hasOwnImage ? slug : 'home'}.png`, Astro.site);
+const schemas = jsonLd ? (Array.isArray(jsonLd) ? jsonLd : [jsonLd]) : [];
+---
+
+<title>{fullTitle}</title>
+<meta name="description" content={description} />
+<link rel="canonical" href={canonical} />
+{noindex && <meta name="robots" content="noindex, follow" />}
+
+<meta property="og:type" content={type} />
+<meta property="og:site_name" content={SITE.name} />
+<meta property="og:locale" content={SITE.locale} />
+<meta property="og:title" content={fullTitle} />
+<meta property="og:description" content={description} />
+<meta property="og:url" content={canonical} />
+<meta property="og:image" content={ogImage} />
+<meta property="og:image:width" content="1200" />
+<meta property="og:image:height" content="630" />
+<meta property="og:image:alt" content={fullTitle} />
+
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:title" content={fullTitle} />
+<meta name="twitter:description" content={description} />
+<meta name="twitter:image" content={ogImage} />
+{SITE.twitterHandle && <meta name="twitter:site" content={SITE.twitterHandle} />}
+
+<link rel="sitemap" href="/sitemap-index.xml" />
+
+{schemas.map((schema) => <script type="application/ld+json" set:html={JSON.stringify(schema)} />)}

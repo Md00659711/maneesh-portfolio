@@ -1,0 +1,231 @@
+---
+import Block from '@/components/ui/Block.astro';
+import CareerTrek from '@/components/ui/CareerTrek.astro';
+import { EXPERIENCE, EDUCATION } from '@/data/experience';
+
+const fmt = (ym: string | null) =>
+  ym ? new Date(`${ym}-01T00:00:00Z`).toLocaleDateString('en-GB', { month: 'short', year: 'numeric', timeZone: 'UTC' }) : 'Present';
+---
+
+<Block id="experience" block="maneesh/git-log" eyebrow="$ git log --career --oneline" title="Five camps. <em>One direction: up.</em>">
+  <CareerTrek />
+  <ol class="log">
+    {
+      EXPERIENCE.map((job, i) => (
+        <li class:list={['commit', { 'commit--head': i === 0 }]} data-reveal>
+          <div class="commit__rail" aria-hidden="true">
+            <span class="commit__node" />
+          </div>
+          <article class="commit__body">
+            <p class="commit__meta mono">
+              <span class="commit__hash">{job.hash}</span>
+              {i === 0 && <span class="commit__ref">HEAD → current</span>}
+              <span class="commit__date">
+                <time datetime={job.start}>{fmt(job.start)}</time> — {job.end ? <time datetime={job.end}>{fmt(job.end)}</time> : 'Present'}
+              </span>
+            </p>
+            <h3 class="commit__title">
+              {job.role} <span>@ {job.company}</span>
+            </h3>
+            <ul class="commit__list">
+              {job.highlights.map((h) => (
+                <li>{h}</li>
+              ))}
+            </ul>
+            <ul class="commit__stack">
+              {job.stack.map((s) => (
+                <li class="chip">{s}</li>
+              ))}
+            </ul>
+          </article>
+        </li>
+      ))
+    }
+    <li class="commit commit--root" data-reveal>
+      <div class="commit__rail" aria-hidden="true"><span class="commit__node"></span></div>
+      <p class="commit__meta mono"><span class="commit__hash">0000000</span> Initial commit: learned PHP, never looked back.</p>
+    </li>
+  </ol>
+
+  <div class="edu">
+    <h3 class="edu__title mono" data-reveal>// education &amp; certifications</h3>
+    <ul class="edu__grid">
+      {
+        EDUCATION.map((e, i) => (
+          <li class="edu__item" data-reveal style={`--d:${i}`}>
+            <p class="edu__period mono">{e.period || '—'}</p>
+            <p class="edu__name">{e.title}</p>
+            <p class="edu__org">{e.org}</p>
+            {e.note && <p class="edu__note mono">★ {e.note}</p>}
+          </li>
+        ))
+      }
+    </ul>
+  </div>
+</Block>
+
+<style>
+  .log {
+    position: relative;
+    list-style: none;
+    padding: 0;
+    margin: 0;
+  }
+  /* Accent line that fills down the rail as you scroll (--fill is animated by GSAP). */
+  .log::before {
+    content: '';
+    position: absolute;
+    left: 19px;
+    top: 0;
+    width: 2px;
+    height: var(--fill, 0%);
+    background: var(--grad-btn);
+    z-index: 1;
+    border-radius: 2px;
+    pointer-events: none;
+  }
+  .commit {
+    display: grid;
+    grid-template-columns: 40px 1fr;
+    gap: clamp(12px, 3vw, 28px);
+  }
+  .commit__rail {
+    position: relative;
+    display: flex;
+    justify-content: center;
+  }
+  .commit__rail::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    width: 2px;
+    background: linear-gradient(var(--accent), var(--line));
+  }
+  .commit:not(.commit--head) .commit__rail::before {
+    background: var(--line);
+  }
+  .commit--root .commit__rail::before {
+    bottom: 50%;
+  }
+  .commit__node {
+    position: relative;
+    z-index: 2;
+    margin-top: 6px;
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    border: 2px solid var(--line-strong);
+    background: var(--bg);
+    transition: border-color 0.4s, transform 0.4s var(--ease-spring);
+  }
+  .commit.is-visible .commit__node {
+    border-color: var(--accent);
+  }
+  .commit--head .commit__node {
+    background: var(--accent);
+    border-color: var(--accent);
+    box-shadow: 0 0 0 6px var(--accent-soft);
+  }
+  .commit:hover .commit__node {
+    transform: scale(1.3);
+  }
+
+  .commit__body {
+    padding-bottom: clamp(40px, 6vw, 64px);
+  }
+  .commit__meta {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 6px 12px;
+    font-size: 12.5px;
+    color: var(--text-faint);
+  }
+  .commit--root .commit__meta {
+    padding-top: 4px;
+  }
+  .commit__hash {
+    color: var(--hot);
+  }
+  .commit__ref {
+    padding: 2px 8px;
+    border-radius: 999px;
+    background: var(--accent-soft);
+    color: var(--accent);
+  }
+  .commit__title {
+    margin: 10px 0 16px;
+    font-size: clamp(22px, 2.6vw, 30px);
+  }
+  .commit__title span {
+    color: var(--text-muted);
+    font-weight: 500;
+  }
+  .commit__list {
+    display: grid;
+    gap: 10px;
+    max-width: 760px;
+    list-style: none;
+    color: var(--text-muted);
+  }
+  .commit__list li {
+    position: relative;
+    padding-left: 22px;
+  }
+  .commit__list li::before {
+    content: '+';
+    position: absolute;
+    left: 0;
+    font-family: var(--font-mono);
+    color: var(--ok);
+  }
+  .commit__stack {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 7px;
+    margin-top: 18px;
+    list-style: none;
+  }
+
+  .edu {
+    margin-top: clamp(56px, 8vw, 96px);
+  }
+  .edu__title {
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--accent);
+    margin-bottom: 20px;
+  }
+  .edu__grid {
+    list-style: none;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 240px), 1fr));
+    gap: 16px;
+  }
+  .edu__item {
+    padding: 22px;
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    background: var(--surface);
+  }
+  .edu__period {
+    font-size: 12px;
+    color: var(--text-faint);
+  }
+  .edu__name {
+    margin-top: 10px;
+    font-weight: 600;
+    line-height: 1.3;
+  }
+  .edu__org {
+    margin-top: 4px;
+    font-size: 14.5px;
+    color: var(--text-muted);
+  }
+  .edu__note {
+    margin-top: 10px;
+    font-size: 12px;
+    color: var(--hot);
+  }
+</style>

@@ -1,0 +1,325 @@
+---
+// Before/after view of the SiGMA World query fix, styled like the Query Monitor plugin.
+// The SQL is a simplified illustration; the 65% page-load result is the real measured one.
+import Block from '@/components/ui/Block.astro';
+
+const ids = [1042, 1187, 1203, 1311, 1376, 1408];
+const before = ids.map((id) => ({
+  sql: `SELECT post_status FROM wp_posts WHERE ID = ${id}`,
+  tag: 'no cache',
+  width: 72 + ((id * 7) % 22),
+}));
+const after = [
+  { sql: `SELECT ID, post_status FROM wp_posts WHERE ID IN (${ids.join(', ')})`, tag: 'indexed', width: 84 },
+  { sql: "wp_cache_get( 'post_status_batch' )", tag: 'cache hit', width: 6 },
+];
+---
+
+<Block id="performance" block="maneesh/query-monitor" eyebrow="// a real fix, replayed" title="Six queries became one. <em>Pages got 65% faster.</em>">
+  <div class="qd" data-qd data-state="before">
+    <div class="qd__text" data-reveal>
+      <p>
+        On SiGMA World, one template asked the database for post statuses one post at a time. Each lookup was fast on its
+        own, but they added up on every page.
+      </p>
+      <p>
+        I batched them into <strong>one indexed query</strong> and cached the result. Real-world page load time dropped by
+        about <strong>65%</strong>, on a platform with ~3M peak visits.
+      </p>
+      <p class="qd__note mono">The SQL is simplified for illustration. The 65% is the measured result.</p>
+    </div>
+
+    <div class="qm" data-reveal style="--d:1" data-bp="QueryDemo · Query Monitor">
+      <div class="qm__bar">
+        <span class="qm__title mono">Query Monitor</span>
+        <div class="qm__tabs" role="tablist" aria-label="Choose version">
+          <button type="button" role="tab" class="qm__tab" data-qd-tab="before" aria-selected="true">Before</button>
+          <button type="button" role="tab" class="qm__tab" data-qd-tab="after" aria-selected="false">After</button>
+        </div>
+      </div>
+
+      <ol class="qm__rows qm__rows--before mono" aria-label="Queries before the fix">
+        {
+          before.map((q, i) => (
+            <li style={`--i:${i}; --w:${q.width}%`}>
+              <code>{q.sql}</code>
+              <span class="qm__tag qm__tag--bad">{q.tag}</span>
+              <span class="qm__bar-fill" aria-hidden="true" />
+            </li>
+          ))
+        }
+      </ol>
+      <ol class="qm__rows qm__rows--after mono" aria-label="Queries after the fix">
+        {
+          after.map((q, i) => (
+            <li style={`--i:${i}; --w:${q.width}%`}>
+              <code>{q.sql}</code>
+              <span class="qm__tag qm__tag--good">{q.tag}</span>
+              <span class="qm__bar-fill" aria-hidden="true" />
+            </li>
+          ))
+        }
+        <li class="qm__removed" style={`--i:${after.length}`}>
+          − {before.length - 1} separate lookups removed · repeat views served from object cache
+        </li>
+      </ol>
+
+      <div class="qm__foot">
+        <div class="qm__meter">
+          <span class="mono">Page load time</span>
+          <span class="qm__track"><span class="qm__load" aria-hidden="true"></span></span>
+          <strong class="mono qm__pct" data-qd-pct>100%</strong>
+        </div>
+        <p class="qm__sum mono">
+          <span class="only-before">{before.length} queries · 0 cached</span>
+          <span class="only-after">1 query · cached on repeat views · <b>−65%</b></span>
+        </p>
+      </div>
+    </div>
+  </div>
+</Block>
+
+<style>
+  .qd {
+    display: grid;
+    grid-template-columns: 0.8fr 1.2fr;
+    gap: clamp(32px, 5vw, 64px);
+    align-items: center;
+  }
+  .qd__text {
+    display: grid;
+    gap: 16px;
+    color: var(--text-muted);
+    font-size: 17px;
+  }
+  .qd__text strong {
+    color: var(--text);
+  }
+  .qd__note {
+    font-size: 12px;
+    color: var(--text-faint);
+  }
+
+  .qm {
+    border: 1px solid var(--line-strong);
+    border-radius: var(--radius-lg);
+    background: var(--bg-elev);
+    overflow: hidden;
+    box-shadow: var(--shadow);
+  }
+  .qm__bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 10px 14px;
+    background: #1d2327; /* WordPress admin bar colour */
+    color: #f0f0f1;
+  }
+  .qm__title {
+    font-size: 12px;
+  }
+  .qm__tabs {
+    display: flex;
+    gap: 4px;
+    padding: 3px;
+    border-radius: 8px;
+    background: rgb(255 255 255 / 0.08);
+  }
+  .qm__tab {
+    padding: 6px 14px;
+    border: 0;
+    border-radius: 6px;
+    background: none;
+    color: #c3c4c7;
+    font: 500 13px var(--font-display);
+    cursor: pointer;
+    transition: background-color 0.2s, color 0.2s;
+  }
+  .qm__tab[aria-selected='true'] {
+    background: #3858e9;
+    color: #fff;
+  }
+
+  .qm__rows {
+    list-style: none;
+    padding: 10px 0;
+    margin: 0;
+    min-height: 284px;
+  }
+  .qd[data-state='before'] .qm__rows--after,
+  .qd[data-state='after'] .qm__rows--before,
+  .qd[data-state='before'] .only-after,
+  .qd[data-state='after'] .only-before {
+    display: none;
+  }
+  .qm__rows li {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 9px 16px 13px;
+    font-size: 12px;
+    border-bottom: 1px solid var(--line);
+    animation: row-in 0.45s var(--ease-out) both;
+    animation-delay: calc(var(--i) * 90ms);
+  }
+  .qm__rows li.qm__removed {
+    justify-content: center;
+    margin: 14px 16px;
+    padding: 28px 16px;
+    border: 1px dashed var(--line-strong);
+    border-radius: var(--radius);
+    color: var(--text-faint);
+    font-size: 11.5px;
+    text-align: center;
+  }
+  .qm__rows code {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    color: var(--text);
+  }
+  .qm__tag {
+    flex-shrink: 0;
+    padding: 2px 8px;
+    border-radius: 999px;
+    font-size: 10.5px;
+  }
+  .qm__tag--bad {
+    background: color-mix(in srgb, var(--hot) 16%, transparent);
+    color: var(--hot);
+  }
+  .qm__tag--good {
+    background: color-mix(in srgb, var(--ok) 16%, transparent);
+    color: var(--ok);
+  }
+  .qm__bar-fill {
+    position: absolute;
+    left: 16px;
+    bottom: 5px;
+    height: 3px;
+    width: calc((100% - 32px) * var(--w) / 100);
+    border-radius: 3px;
+    background: var(--line-strong);
+    transform-origin: left;
+    animation: bar-grow 0.7s var(--ease-out) both;
+    animation-delay: calc(var(--i) * 90ms + 150ms);
+  }
+  .qm__rows--after .qm__bar-fill {
+    background: var(--ok);
+  }
+
+  .qm__foot {
+    padding: 14px 16px 16px;
+    background: var(--bg-elev-2);
+  }
+  .qm__meter {
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    align-items: center;
+    gap: 12px;
+    font-size: 12px;
+    color: var(--text-muted);
+  }
+  .qm__track {
+    height: 10px;
+    border-radius: 999px;
+    background: var(--bg);
+    overflow: hidden;
+  }
+  .qm__load {
+    display: block;
+    height: 100%;
+    width: 100%;
+    border-radius: inherit;
+    background: var(--hot);
+    transition: width 1.1s var(--ease-out), background-color 0.6s;
+  }
+  .qd[data-state='after'] .qm__load {
+    width: 35%;
+    background: var(--ok);
+  }
+  .qm__pct {
+    min-width: 44px;
+    text-align: right;
+    font-size: 14px;
+    color: var(--text);
+  }
+  .qm__sum {
+    margin-top: 8px;
+    font-size: 11.5px;
+    color: var(--text-faint);
+  }
+  .qm__sum b {
+    color: var(--ok);
+  }
+
+  @keyframes row-in {
+    from {
+      opacity: 0;
+      transform: translateX(-10px);
+    }
+  }
+  @keyframes bar-grow {
+    from {
+      transform: scaleX(0);
+    }
+  }
+
+  @media (max-width: 900px) {
+    .qd {
+      grid-template-columns: 1fr;
+    }
+    .qm__rows {
+      min-height: 0;
+    }
+  }
+</style>
+
+<script>
+  let qdTimer: number | undefined;
+
+  function initQueryDemo() {
+    window.clearTimeout(qdTimer);
+    const root = document.querySelector<HTMLElement>('[data-qd]');
+    if (!root) return;
+    const tabs = [...root.querySelectorAll<HTMLButtonElement>('[data-qd-tab]')];
+    const pct = root.querySelector<HTMLElement>('[data-qd-pct]')!;
+    let touched = false;
+
+    const set = (state: string) => {
+      root.dataset.state = state;
+      tabs.forEach((t) => t.setAttribute('aria-selected', String(t.dataset.qdTab === state)));
+      // Count the percentage down/up alongside the bar.
+      const from = Number(pct.textContent!.replace('%', ''));
+      const to = state === 'after' ? 35 : 100;
+      const start = performance.now();
+      const step = (now: number) => {
+        const t = Math.min((now - start) / 1100, 1);
+        pct.textContent = `${Math.round(from + (to - from) * (1 - Math.pow(1 - t, 3)))}%`;
+        if (t < 1) requestAnimationFrame(step);
+      };
+      requestAnimationFrame(step);
+    };
+    tabs.forEach((t) =>
+      t.addEventListener('click', () => {
+        touched = true;
+        set(t.dataset.qdTab!);
+      }),
+    );
+
+    // Play the fix once automatically the first time the panel is seen.
+    const io = new IntersectionObserver(
+      ([entry]) => {
+        if (!entry.isIntersecting) return;
+        io.disconnect();
+        qdTimer = window.setTimeout(() => !touched && set('after'), 2200);
+      },
+      { threshold: 0.5 },
+    );
+    io.observe(root);
+  }
+  document.addEventListener('astro:page-load', initQueryDemo);
+</script>

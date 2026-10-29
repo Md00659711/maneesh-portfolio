@@ -1,0 +1,236 @@
+---
+// A Gutenberg-style "/" inserter: press "/" (or Ctrl/⌘ + K) to jump anywhere on the site.
+import { getCollection } from 'astro:content';
+import { PROFILE } from '@/data/profile';
+
+const projects = (await getCollection('projects')).sort((a, b) => a.data.order - b.data.order);
+
+const items = [
+  { group: 'Sections', label: 'Home', hint: 'core/cover', href: '/' },
+  { group: 'Sections', label: 'About', hint: 'core/paragraph', href: '/#about' },
+  { group: 'Sections', label: 'Engineering mindset', hint: 'maneesh/wp-config', href: '/#mindset' },
+  { group: 'Sections', label: 'Skills', hint: 'core/plugins', href: '/#skills' },
+  { group: 'Sections', label: 'Experience', hint: 'core/git-log', href: '/#experience' },
+  { group: 'Sections', label: 'Performance demo', hint: 'maneesh/query-monitor', href: '/#performance' },
+  { group: 'Sections', label: 'Off the clock', hint: 'maneesh/pahadi', href: '/#life' },
+  { group: 'Sections', label: 'Contact', hint: 'core/publish', href: '/#contact' },
+  { group: 'Pages', label: 'All projects', hint: '/projects/', href: '/projects/' },
+  { group: 'Pages', label: 'CV / Résumé (PDF)', hint: '/cv/', href: '/cv/' },
+  { group: 'Fun', label: 'Open terminal (WP-CLI)', hint: 'press `', href: '#terminal', term: true },
+  { group: 'Fun', label: 'Blueprint mode: see how this page is built', hint: 'press B', href: '#blueprint', blueprint: true },
+  ...projects.map((p) => ({ group: 'Projects', label: p.data.title, hint: `/projects/${p.id}/`, href: `/projects/${p.id}/` })),
+  { group: 'Links', label: 'Send an email', hint: PROFILE.email, href: `mailto:${PROFILE.email}` },
+  { group: 'Links', label: 'LinkedIn', hint: 'linkedin.com', href: PROFILE.links.linkedin },
+  { group: 'Links', label: 'GitHub', hint: 'github.com', href: PROFILE.links.github },
+  { group: 'Links', label: 'WordPress.org profile', hint: 'profiles.wordpress.org', href: PROFILE.links.wporg },
+];
+---
+
+<dialog class="palette" data-palette aria-label="Quick navigation">
+  <div class="palette__box">
+    <div class="palette__search">
+      <span class="palette__slash mono" aria-hidden="true">/</span>
+      <input
+        class="palette__input"
+        type="text"
+        placeholder="Type to search sections, projects, links…"
+        aria-label="Search"
+        autocomplete="off"
+        spellcheck="false"
+        data-palette-input
+      />
+      <kbd class="mono">esc</kbd>
+    </div>
+    <ul class="palette__list" role="listbox" data-palette-list>
+      {
+        items.map((item, i) => (
+          <li role="option" aria-selected={i === 0 ? 'true' : 'false'} data-label={item.label.toLowerCase()}>
+            <a
+              href={item.href}
+              {...(item.href.startsWith('http') ? { target: '_blank', rel: 'noopener' } : {})}
+              {...('term' in item ? { 'data-term-open': '' } : {})}
+              {...('blueprint' in item ? { 'data-blueprint-toggle': '' } : {})}
+            >
+              <span class="palette__group mono">{item.group}</span>
+              <span class="palette__label">{item.label}</span>
+              <span class="palette__hint mono">{item.hint}</span>
+            </a>
+          </li>
+        ))
+      }
+    </ul>
+    <p class="palette__empty mono" data-palette-empty hidden>No blocks found.</p>
+  </div>
+</dialog>
+
+<style>
+  .palette {
+    width: min(620px, calc(100vw - 32px));
+    margin: 12vh auto auto;
+    padding: 0;
+    border: 1px solid var(--line-strong);
+    border-radius: var(--radius-lg);
+    background: var(--bg-elev);
+    color: var(--text);
+    box-shadow: var(--shadow);
+  }
+  .palette[open] {
+    animation: pop 0.3s var(--ease-out);
+  }
+  .palette::backdrop {
+    background: rgb(0 0 0 / 0.5);
+    backdrop-filter: blur(4px);
+  }
+  @keyframes pop {
+    from {
+      opacity: 0;
+      transform: translateY(-12px) scale(0.97);
+    }
+  }
+  .palette__search {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 16px 18px;
+    border-bottom: 1px solid var(--line);
+  }
+  .palette__slash {
+    color: var(--accent);
+    font-size: 20px;
+    font-weight: 700;
+  }
+  .palette__input {
+    flex: 1;
+    min-width: 0;
+    border: 0;
+    background: none;
+    color: var(--text);
+    font: 400 17px var(--font-display);
+    outline: none;
+  }
+  .palette kbd {
+    padding: 2px 7px;
+    font-size: 11px;
+    border: 1px solid var(--line-strong);
+    border-radius: 5px;
+    color: var(--text-faint);
+  }
+  .palette__list {
+    list-style: none;
+    max-height: min(420px, 60vh);
+    overflow-y: auto;
+    padding: 8px;
+  }
+  .palette__list li[hidden] {
+    display: none;
+  }
+  .palette__list a {
+    display: grid;
+    grid-template-columns: 86px 1fr auto;
+    align-items: center;
+    gap: 12px;
+    padding: 11px 12px;
+    border-radius: var(--radius);
+    text-decoration: none;
+  }
+  .palette__list li[aria-selected='true'] a {
+    background: var(--accent-soft);
+  }
+  .palette__list li[aria-selected='true'] .palette__label {
+    color: var(--accent);
+  }
+  .palette__group {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--text-faint);
+  }
+  .palette__hint {
+    font-size: 12px;
+    color: var(--text-faint);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    max-width: 180px;
+  }
+  .palette__empty {
+    padding: 20px;
+    text-align: center;
+    color: var(--text-faint);
+    font-size: 14px;
+  }
+  @media (max-width: 560px) {
+    .palette__list a {
+      grid-template-columns: 1fr;
+      gap: 2px;
+    }
+    .palette__hint {
+      max-width: none;
+    }
+  }
+</style>
+
+<script>
+  function initPalette() {
+    const dialog = document.querySelector<HTMLDialogElement>('[data-palette]');
+    const input = document.querySelector<HTMLInputElement>('[data-palette-input]');
+    const list = document.querySelector<HTMLUListElement>('[data-palette-list]');
+    const empty = document.querySelector<HTMLElement>('[data-palette-empty]');
+    if (!dialog || !input || !list || !empty) return;
+    const options = [...list.querySelectorAll<HTMLLIElement>('li')];
+    let active = 0;
+
+    const visible = () => options.filter((o) => !o.hidden);
+    const select = (i: number) => {
+      const v = visible();
+      if (!v.length) return;
+      active = (i + v.length) % v.length;
+      options.forEach((o) => o.setAttribute('aria-selected', 'false'));
+      v[active].setAttribute('aria-selected', 'true');
+      v[active].scrollIntoView({ block: 'nearest' });
+    };
+    const filter = () => {
+      const q = input.value.trim().toLowerCase();
+      options.forEach((o) => (o.hidden = !!q && !(o.dataset.label ?? '').includes(q)));
+      empty.hidden = visible().length > 0;
+      select(0);
+    };
+    const open = () => {
+      if (dialog.open) return;
+      input.value = '';
+      filter();
+      dialog.showModal();
+      input.focus();
+    };
+
+    input.addEventListener('input', filter);
+    input.addEventListener('keydown', (e) => {
+      if (e.key === 'ArrowDown') (e.preventDefault(), select(active + 1));
+      if (e.key === 'ArrowUp') (e.preventDefault(), select(active - 1));
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        visible()[active]?.querySelector('a')?.click();
+      }
+    });
+    list.addEventListener('click', (e) => {
+      if ((e.target as HTMLElement).closest('a')) dialog.close();
+    });
+    dialog.addEventListener('click', (e) => {
+      if (e.target === dialog) dialog.close();
+    });
+    document.querySelectorAll('[data-palette-open]').forEach((b) => b.addEventListener('click', open));
+
+    // The keyboard shortcut is bound once for the whole session (it survives page navigations).
+    if (!(window as any).__paletteKeys) {
+      (window as any).__paletteKeys = true;
+      document.addEventListener('keydown', (e) => {
+        const typing = (e.target as HTMLElement).closest('input, textarea, [contenteditable]');
+        if ((e.key === '/' && !typing) || (e.key.toLowerCase() === 'k' && (e.metaKey || e.ctrlKey))) {
+          e.preventDefault();
+          document.querySelector<HTMLButtonElement>('[data-palette-open]')?.click();
+        }
+      });
+    }
+  }
+  document.addEventListener('astro:page-load', initPalette);
+</script>

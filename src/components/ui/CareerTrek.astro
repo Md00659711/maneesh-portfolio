@@ -1,0 +1,254 @@
+---
+// Career drawn as a Himalayan trek: oldest job = base camp, current job = summit (so far).
+// The trail draws itself and a trekker climbs it as you scroll (script below).
+import { EXPERIENCE } from '@/data/experience';
+
+const jobs = [...EXPERIENCE].reverse();
+const names = ['Base Camp', 'Camp I', 'Camp II', 'Camp III', 'Summit (so far)'];
+// Camp positions in the SVG's 1000 × 380 coordinate space, climbing left → right.
+const points = [
+  [70, 330],
+  [270, 272],
+  [460, 214],
+  [650, 150],
+  [860, 66],
+];
+const camps = jobs.map((job, i) => ({
+  name: names[i] ?? `Camp ${i}`,
+  company: job.company,
+  year: job.start.slice(0, 4),
+  x: points[i][0],
+  y: points[i][1],
+}));
+// Zig-zag trail between camps, with a switchback bend in each leg.
+const trail = camps
+  .map((c, i) => {
+    if (i === 0) return `M${c.x} ${c.y}`;
+    const p = camps[i - 1];
+    return `Q${(p.x + c.x) / 2 + 40} ${(p.y + c.y) / 2 + 34} ${c.x} ${c.y}`;
+  })
+  .join(' ');
+---
+
+<figure class="trek" data-trek data-bp="CareerTrek.astro · SVG path">
+  <svg class="trek__svg" viewBox="0 0 1000 380" role="img" aria-labelledby="trek-desc">
+    <desc id="trek-desc">
+      Career shown as a mountain trek: {camps.map((c) => `${c.name}: ${c.company} (${c.year})`).join(', ')}.
+    </desc>
+    <path class="trek__mount trek__mount--back" d="M0 380 L160 250 L300 290 L520 120 L640 190 L860 40 L1000 150 L1000 380Z"></path>
+    <path class="trek__mount" d="M0 380 L120 330 L330 250 L470 280 L700 150 L860 66 L1000 210 L1000 380Z"></path>
+    <path class="trek__snow" d="M840 80 L860 66 L882 84 L870 82 L860 94 L852 82Z"></path>
+    <path class="trek__trail-bg" d={trail}></path>
+    <path class="trek__trail" d={trail} data-trail></path>
+    {
+      camps.map((c, i) => (
+        <g class="trek__camp" data-camp={i}>
+          <circle cx={c.x} cy={c.y} r="9" />
+          <circle class="trek__camp-dot" cx={c.x} cy={c.y} r="3.5" />
+        </g>
+      ))
+    }
+    <g class="trek__flag" transform={`translate(${camps.at(-1)!.x} ${camps.at(-1)!.y})`}>
+      <line x1="0" y1="-8" x2="0" y2="-44"></line>
+      <path d="M0 -44 L26 -36 L0 -28Z"></path>
+    </g>
+    <g class="trek__hiker" data-hiker>
+      <circle r="13"></circle>
+      <text text-anchor="middle" dy="5" font-size="14">🥾</text>
+    </g>
+  </svg>
+
+  <ol class="trek__labels">
+    {
+      camps.map((c, i) => (
+        <li class="trek__label" data-label={i} style={`--x:${(c.x / 1000) * 100}%; --y:${(c.y / 380) * 100}%`}>
+          <span class="trek__alt mono">{c.year} · {c.name}</span>
+          <span class="trek__co">{c.company}</span>
+        </li>
+      ))
+    }
+  </ol>
+</figure>
+
+<style>
+  .trek {
+    position: relative;
+    margin: 0 0 clamp(48px, 7vw, 80px);
+    padding: clamp(16px, 3vw, 28px);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-lg);
+    background: linear-gradient(180deg, var(--bg-elev), var(--bg));
+    overflow: hidden;
+  }
+  .trek__svg {
+    width: 100%;
+    height: auto;
+    overflow: visible;
+  }
+  .trek__mount {
+    fill: color-mix(in srgb, var(--accent) 10%, var(--bg-elev-2));
+  }
+  .trek__mount--back {
+    fill: color-mix(in srgb, var(--accent) 18%, var(--bg-elev));
+    opacity: 0.7;
+  }
+  .trek__snow {
+    fill: color-mix(in srgb, #fff 85%, var(--accent));
+  }
+  .trek__trail-bg,
+  .trek__trail {
+    fill: none;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+  .trek__trail-bg {
+    stroke: var(--line-strong);
+    stroke-width: 3;
+    stroke-dasharray: 2 9;
+  }
+  .trek__trail {
+    stroke: var(--accent);
+    stroke-width: 4;
+  }
+  .trek__camp circle:first-child {
+    fill: var(--bg);
+    stroke: var(--line-strong);
+    stroke-width: 2;
+    transition: stroke 0.4s;
+  }
+  .trek__camp-dot {
+    fill: var(--line-strong);
+    transition: fill 0.4s;
+  }
+  .trek__camp.is-reached circle:first-child {
+    stroke: var(--accent);
+  }
+  .trek__camp.is-reached .trek__camp-dot {
+    fill: var(--accent);
+  }
+  .trek__flag line {
+    stroke: var(--text);
+    stroke-width: 2;
+  }
+  .trek__flag path {
+    fill: var(--hot);
+  }
+  .trek__hiker circle {
+    fill: var(--bg-elev);
+    stroke: var(--accent);
+    stroke-width: 2;
+  }
+
+  .trek__labels {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+  }
+  .trek__label {
+    position: absolute;
+    left: calc(var(--x) * 0.94 + 3%);
+    top: calc(var(--y) * 0.86 + 4%);
+    transform: translate(-30%, 22px);
+    display: grid;
+    padding: 6px 10px;
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    background: color-mix(in srgb, var(--bg-elev) 92%, transparent);
+    white-space: nowrap;
+    opacity: 0.45;
+    transition: opacity 0.4s, border-color 0.4s;
+  }
+  .trek__label.is-reached {
+    opacity: 1;
+    border-color: color-mix(in srgb, var(--accent) 45%, var(--line));
+  }
+  .trek__label:last-child {
+    transform: translate(-118%, -10%);
+  }
+  .trek__alt {
+    font-size: 10.5px;
+    color: var(--accent);
+  }
+  .trek__co {
+    font-size: 13.5px;
+    font-weight: 600;
+  }
+
+  /* On small screens, labels sit below the drawing as a list instead of floating on it. */
+  @media (max-width: 760px) {
+    .trek__label,
+    .trek__label:last-child {
+      position: static;
+      transform: none;
+      white-space: normal;
+    }
+    .trek__labels {
+      display: grid;
+      gap: 6px;
+      margin-top: 14px;
+    }
+  }
+</style>
+
+<script>
+  let stopTrek: AbortController | undefined;
+
+  function initTrek() {
+    stopTrek?.abort();
+    const root = document.querySelector<HTMLElement>('[data-trek]');
+    const trail = root?.querySelector<SVGPathElement>('[data-trail]');
+    const hiker = root?.querySelector<SVGGElement>('[data-hiker]');
+    if (!root || !trail || !hiker) return;
+    stopTrek = new AbortController();
+
+    const total = trail.getTotalLength();
+    const camps = [...root.querySelectorAll<SVGGElement>('[data-camp]')];
+    const labels = [...root.querySelectorAll<HTMLElement>('[data-label]')];
+    // How far along the trail each camp sits (0 → 1), found by sampling the path.
+    const campAt = camps.map((g) => {
+      const c = g.querySelector('circle')!;
+      const cx = c.cx.baseVal.value;
+      const cy = c.cy.baseVal.value;
+      let best = 0;
+      let bestD = Infinity;
+      for (let l = 0; l <= total; l += 2) {
+        const p = trail.getPointAtLength(l);
+        const d = (p.x - cx) ** 2 + (p.y - cy) ** 2;
+        if (d < bestD) (bestD = d), (best = l);
+      }
+      return best / total;
+    });
+
+    trail.style.strokeDasharray = `${total}`;
+    const render = (progress: number) => {
+      trail.style.strokeDashoffset = `${total * (1 - progress)}`;
+      const p = trail.getPointAtLength(total * progress);
+      hiker.setAttribute('transform', `translate(${p.x} ${p.y - 20})`);
+      campAt.forEach((at, i) => {
+        const reached = progress >= at - 0.01;
+        camps[i].classList.toggle('is-reached', reached);
+        labels[i]?.classList.toggle('is-reached', reached);
+      });
+    };
+
+    if (matchMedia('(prefers-reduced-motion: reduce)').matches) return render(1);
+
+    let ticking = false;
+    const update = () => {
+      const r = root.getBoundingClientRect();
+      // 0 when the figure enters the bottom of the screen, 1 when it reaches the upper third.
+      const progress = Math.min(1, Math.max(0, (innerHeight - r.top) / (innerHeight * 0.65 + r.height * 0.5)));
+      render(progress);
+      ticking = false;
+    };
+    update();
+    addEventListener(
+      'scroll',
+      () => {
+        if (!ticking) (ticking = true), requestAnimationFrame(update);
+      },
+      { passive: true, signal: stopTrek.signal },
+    );
+  }
+  document.addEventListener('astro:page-load', initTrek);
+</script>

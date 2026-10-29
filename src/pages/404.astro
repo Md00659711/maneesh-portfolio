@@ -1,0 +1,44 @@
+---
+import BaseLayout from '@/layouts/BaseLayout.astro';
+---
+
+<BaseLayout title="Page not found" noindex>
+  <section class="nf container">
+    <p class="mono nf__code">WP_Error( 404, 'rest_no_route' )</p>
+    <h1>This page was <span>never registered.</span></h1>
+    <p class="nf__lead">The link may be old, or the URL has a typo. Press <kbd class="mono">/</kbd> to jump anywhere.</p>
+    <a href="/" class="btn btn--primary">← Back home</a>
+  </section>
+</BaseLayout>
+
+<style>
+  .nf {
+    min-height: 80vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: flex-start;
+    gap: 24px;
+    padding-top: 120px;
+  }
+  .nf__code {
+    color: var(--hot);
+    font-size: 14px;
+  }
+  h1 {
+    font-size: clamp(40px, 8vw, 92px);
+    letter-spacing: -0.04em;
+  }
+  h1 span {
+    color: var(--text-faint);
+  }
+  .nf__lead {
+    color: var(--text-muted);
+    font-size: 18px;
+  }
+  kbd {
+    padding: 1px 7px;
+    border: 1px solid var(--line-strong);
+    border-radius: 5px;
+  }
+</style>

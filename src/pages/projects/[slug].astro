@@ -1,0 +1,256 @@
+---
+// Dynamic route: one static page is generated for every file in src/content/projects/.
+import { getCollection, render, type CollectionEntry } from 'astro:content';
+import BaseLayout from '@/layouts/BaseLayout.astro';
+import Breadcrumbs from '@/components/ui/Breadcrumbs.astro';
+import { PROFILE } from '@/data/profile';
+
+export async function getStaticPaths() {
+  const projects = (await getCollection('projects')).sort((a, b) => a.data.order - b.data.order);
+  return projects.map((project, i) => ({
+    params: { slug: project.id },
+    props: { project, next: projects[(i + 1) % projects.length] },
+  }));
+}
+
+interface Props {
+  project: CollectionEntry<'projects'>;
+  next: CollectionEntry<'projects'>;
+}
+
+const { project, next } = Astro.props;
+const { title, summary, url, role, year, stack, highlights, accent } = project.data;
+const { Content } = await render(project);
+
+const schema = {
+  '@context': 'https://schema.org',
+  '@type': 'CreativeWork',
+  name: title,
+  description: summary,
+  url: new URL(Astro.url.pathname, Astro.site).href,
+  author: { '@type': 'Person', name: PROFILE.name },
+  keywords: stack.join(', '),
+  ...(url ? { sameAs: url } : {}),
+};
+---
+
+<BaseLayout title={`${title} — Case Study`} description={summary} type="article" jsonLd={schema}>
+  <article class="cs" style={`--card-accent:${accent}`}>
+    <header class="cs__hero">
+      <div class="container">
+        <Breadcrumbs
+          items={[
+            { label: 'Projects', href: '/projects/' },
+            { label: title, href: `/projects/${project.id}/` },
+          ]}
+        />
+        <div class="cs__visual" transition:name={`visual-${project.id}`} aria-hidden="true"></div>
+        <p class="cs__eyebrow mono">// single-project.php · {year}</p>
+        <h1 class="cs__title" transition:name={`title-${project.id}`}>{title}</h1>
+        <p class="cs__summary">{summary}</p>
+
+        <dl class="cs__meta">
+          <div><dt class="mono">Role</dt><dd>{role}</dd></div>
+          <div><dt class="mono">When</dt><dd>{year}</dd></div>
+          {
+            url && (
+              <div>
+                <dt class="mono">Live site</dt>
+                <dd>
+                  <a href={url} target="_blank" rel="noopener">
+                    {new URL(url).hostname.replace(/^www\./, '')} ↗
+                  </a>
+                </dd>
+              </div>
+            )
+          }
+        </dl>
+      </div>
+    </header>
+
+    <div class="container cs__layout">
+      <div class="cs__content">
+        <Content />
+      </div>
+      <aside class="cs__aside">
+        {
+          highlights.length > 0 && (
+            <div class="cs__box">
+              <p class="cs__box-title mono">Results</p>
+              <ul>
+                {highlights.map((h) => (
+                  <li>{h}</li>
+                ))}
+              </ul>
+            </div>
+          )
+        }
+        <div class="cs__box">
+          <p class="cs__box-title mono">Stack</p>
+          <ul class="cs__stack">{stack.map((s) => <li class="chip">{s}</li>)}</ul>
+        </div>
+      </aside>
+    </div>
+
+    {
+      next.id !== project.id && (
+        <nav class="container cs__next" aria-label="Next project">
+          <a href={`/projects/${next.id}/`}>
+            <span class="mono">Next project →</span>
+            <strong>{next.data.title}</strong>
+          </a>
+        </nav>
+      )
+    }
+  </article>
+</BaseLayout>
+
+<style>
+  .cs__hero {
+    padding-top: 140px;
+  }
+  .cs__visual {
+    height: 6px;
+    margin-block: 28px 40px;
+    border-radius: 999px;
+    background: linear-gradient(90deg, var(--card-accent), transparent);
+  }
+  .cs__eyebrow {
+    font-size: 13px;
+    color: var(--card-accent);
+  }
+  .cs__title {
+    margin-top: 12px;
+    font-size: clamp(48px, 9vw, 110px);
+    font-weight: 700;
+    letter-spacing: -0.045em;
+  }
+  .cs__summary {
+    max-width: 760px;
+    margin-top: 24px;
+    font-size: clamp(18px, 2vw, 22px);
+    color: var(--text-muted);
+  }
+  .cs__meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 16px 48px;
+    margin: 40px 0 0;
+    padding-block: 24px;
+    border-block: 1px solid var(--line);
+  }
+  .cs__meta dt {
+    font-size: 11.5px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--text-faint);
+  }
+  .cs__meta dd {
+    margin: 4px 0 0;
+    font-weight: 500;
+  }
+  .cs__meta a {
+    color: var(--accent);
+    text-decoration: none;
+  }
+
+  .cs__layout {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 320px;
+    gap: clamp(32px, 6vw, 80px);
+    padding-block: 64px var(--section-space);
+  }
+  .cs__content {
+    max-width: 720px;
+    font-size: 18px;
+    color: var(--text-muted);
+  }
+  .cs__content :global(h2) {
+    margin: 48px 0 16px;
+    font-size: 28px;
+    color: var(--text);
+  }
+  .cs__content :global(h2:first-child) {
+    margin-top: 0;
+  }
+  .cs__content :global(p) {
+    margin-bottom: 16px;
+  }
+  .cs__content :global(ul) {
+    display: grid;
+    gap: 12px;
+    padding-left: 20px;
+  }
+  .cs__content :global(strong) {
+    color: var(--text);
+  }
+  .cs__content :global(li::marker) {
+    color: var(--card-accent);
+  }
+
+  .cs__aside {
+    display: grid;
+    gap: 16px;
+    align-self: start;
+    position: sticky;
+    top: 100px;
+  }
+  .cs__box {
+    padding: 22px;
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    background: var(--bg-elev);
+  }
+  .cs__box-title {
+    margin-bottom: 14px;
+    font-size: 11.5px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--text-faint);
+  }
+  .cs__box ul {
+    display: grid;
+    gap: 10px;
+    list-style: none;
+    font-size: 15px;
+  }
+  .cs__box ul.cs__stack {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+
+  .cs__next {
+    padding-bottom: var(--section-space);
+  }
+  .cs__next a {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding: 36px;
+    border: 1px solid var(--line);
+    border-radius: var(--radius-lg);
+    text-decoration: none;
+    transition: border-color 0.3s;
+  }
+  .cs__next a:hover {
+    border-color: var(--accent);
+  }
+  .cs__next span {
+    font-size: 13px;
+    color: var(--accent);
+  }
+  .cs__next strong {
+    font-size: clamp(30px, 5vw, 52px);
+    letter-spacing: -0.03em;
+  }
+
+  @media (max-width: 860px) {
+    .cs__layout {
+      grid-template-columns: 1fr;
+    }
+    .cs__aside {
+      position: static;
+    }
+  }
+</style>

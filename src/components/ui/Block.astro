@@ -1,0 +1,85 @@
+---
+// Wraps a home-page section like a Gutenberg block: a small block-name label sits on the
+// top edge and lights up when the section is in view. `id` is used for /#anchor links.
+interface Props {
+  id: string;
+  block: string; // e.g. "maneesh/experience"
+  eyebrow?: string;
+  title?: string;
+  class?: string;
+}
+const { id, block, eyebrow, title, class: className } = Astro.props;
+---
+
+<section id={id} class:list={['section', 'block', className]} aria-labelledby={title ? `${id}-title` : undefined}>
+  <div class="container">
+    <div class="block__frame" data-bp={`Block.astro · #${id}`}>
+      <span class="block__label mono" aria-hidden="true">
+        <span class="block__dot"></span>{block}
+      </span>
+      {
+        (eyebrow || title) && (
+          <header class="block__head" data-reveal>
+            {eyebrow && <p class="block__eyebrow mono">{eyebrow}</p>}
+            {title && (
+              <h2 id={`${id}-title`} class="block__title">
+                <Fragment set:html={title} />
+              </h2>
+            )}
+          </header>
+        )
+      }
+      <slot />
+    </div>
+  </div>
+</section>
+
+<style>
+  .block__frame {
+    position: relative;
+    padding-top: 28px;
+    border-top: 1px dashed var(--line);
+  }
+  .block__label {
+    position: absolute;
+    top: -13px;
+    left: 0;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 3px 10px;
+    border-radius: 6px;
+    background: var(--bg);
+    border: 1px solid var(--line);
+    font-size: 11.5px;
+    color: var(--text-faint);
+    transition: color 0.4s, border-color 0.4s, background-color 0.4s;
+  }
+  .block__dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: currentColor;
+  }
+  .block:hover .block__label,
+  .block:has(.is-visible) .block__label {
+    color: var(--accent);
+    border-color: color-mix(in srgb, var(--accent) 45%, transparent);
+  }
+  .block__head {
+    margin-bottom: clamp(36px, 6vw, 64px);
+    max-width: 760px;
+  }
+  .block__eyebrow {
+    font-size: 13px;
+    color: var(--accent);
+    margin-bottom: 14px;
+  }
+  .block__title {
+    font-size: clamp(34px, 5.6vw, 64px);
+  }
+  .block__title :global(em) {
+    font-style: normal;
+    color: var(--text-faint);
+  }
+</style>

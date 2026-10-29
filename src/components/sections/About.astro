@@ -1,0 +1,248 @@
+---
+import Block from '@/components/ui/Block.astro';
+import { PROFILE, STATS, TEAMS } from '@/data/profile';
+---
+
+<Block id="about" block="maneesh/about" eyebrow="// about" title="Engineer first. <em>WordPress</em> specialist.">
+  <div class="about">
+    <div class="about__text">
+      {PROFILE.summary.map((p, i) => <p data-reveal style={`--d:${i}`}>{p}</p>)}
+      <p class="about__loc mono" data-reveal style="--d:2">📍 {PROFILE.location}</p>
+    </div>
+
+    <dl class="stats" data-bp="Stats · count-up">
+      {
+        STATS.map((s, i) => (
+          <div class="stat" data-reveal style={`--d:${i}`}>
+            <dt class="mono">{s.label}</dt>
+            <dd>
+              <span data-count={s.value}>{s.value}</span>
+              <span class="stat__suffix">{s.suffix}</span>
+            </dd>
+          </div>
+        ))
+      }
+    </dl>
+  </div>
+
+  <div class="teams" data-reveal>
+    <p class="teams__title mono">
+      // shipped with distributed teams in <strong>{TEAMS.length - 1} countries</strong>, remote-first, Agile &amp; Jira
+    </p>
+    <ul class="teams__list" data-clocks data-bp="TeamClocks · Intl API">
+      {
+        TEAMS.map((t) => (
+          <li class:list={['clock', { 'clock--home': t.home }]} data-tz={t.tz} title={t.country}>
+            <span class="clock__code mono">{t.code}</span>
+            <span class="clock__time mono" data-time>--:--</span>
+            <span class="clock__sky" data-sky aria-hidden="true" />
+            <span class="clock__name">{t.home ? 'Home base' : t.country}</span>
+          </li>
+        ))
+      }
+    </ul>
+  </div>
+</Block>
+
+<style>
+  .about {
+    display: grid;
+    grid-template-columns: 1.1fr 1fr;
+    gap: clamp(40px, 6vw, 90px);
+    align-items: start;
+  }
+  .about__text {
+    display: grid;
+    gap: 20px;
+    font-size: clamp(17px, 1.5vw, 19px);
+    color: var(--text-muted);
+  }
+  .about__text p:first-child {
+    color: var(--text);
+    font-size: clamp(19px, 1.9vw, 23px);
+    line-height: 1.5;
+  }
+  .about__loc {
+    font-size: 13px;
+    color: var(--text-faint);
+  }
+
+  .stats {
+    margin: 0;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1px;
+    background: var(--line);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+  }
+  .stat {
+    display: flex;
+    flex-direction: column-reverse;
+    justify-content: flex-end;
+    gap: 10px;
+    padding: clamp(20px, 3vw, 32px);
+    background: var(--surface);
+    transition: background-color 0.3s;
+  }
+  .stat:hover {
+    background: var(--bg-elev-2);
+  }
+  .stat dd {
+    margin: 0;
+    font-size: clamp(44px, 5.5vw, 68px);
+    font-weight: 700;
+    letter-spacing: -0.04em;
+    line-height: 1;
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+  }
+  .stat__suffix {
+    color: var(--accent);
+    background: var(--grad-btn);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    font-size: 0.6em;
+    margin-left: 2px;
+  }
+  .stat dt {
+    font-size: 12.5px;
+    color: var(--text-muted);
+    line-height: 1.45;
+  }
+
+  .teams {
+    margin-top: clamp(48px, 7vw, 80px);
+  }
+  .teams__title {
+    font-size: 13px;
+    color: var(--text-faint);
+    margin-bottom: 16px;
+  }
+  .teams__title strong {
+    color: var(--accent);
+    font-weight: 500;
+  }
+  .teams__list {
+    list-style: none;
+    display: grid;
+    grid-template-columns: repeat(9, minmax(0, 1fr));
+    border: 1px solid var(--line);
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+  }
+  .clock {
+    position: relative;
+    display: grid;
+    gap: 4px;
+    padding: 16px 14px;
+    border-right: 1px solid var(--line);
+    background: var(--bg-elev);
+    transition: background-color 0.3s;
+  }
+  .clock:last-child {
+    border-right: 0;
+  }
+  .clock:hover {
+    background: var(--bg-elev-2);
+  }
+  .clock--home {
+    background: var(--accent-soft);
+  }
+  .clock__code {
+    font-size: 11px;
+    color: var(--text-faint);
+    letter-spacing: 0.08em;
+  }
+  .clock--home .clock__code {
+    color: var(--accent);
+  }
+  .clock__time {
+    font-size: 19px;
+    font-weight: 500;
+    font-variant-numeric: tabular-nums;
+  }
+  .clock__sky {
+    position: absolute;
+    top: 14px;
+    right: 12px;
+    font-size: 12px;
+  }
+  .clock__name {
+    font-size: 12px;
+    color: var(--text-muted);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  @media (max-width: 1100px) {
+    .teams__list {
+      grid-template-columns: repeat(auto-fill, minmax(118px, 1fr));
+      gap: 1px;
+      background: var(--line);
+    }
+    .clock {
+      border-right: 0;
+    }
+  }
+
+  @media (max-width: 860px) {
+    .about {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>
+
+<script>
+  // Count numbers up from 0 when they scroll into view.
+  function initCounters() {
+    const els = document.querySelectorAll<HTMLElement>('[data-count]');
+    if (matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    const io = new IntersectionObserver(
+      (entries) => {
+        for (const entry of entries) {
+          if (!entry.isIntersecting) continue;
+          const el = entry.target as HTMLElement;
+          io.unobserve(el);
+          const target = Number(el.dataset.count);
+          const start = performance.now();
+          const duration = 1600;
+          const step = (now: number) => {
+            const t = Math.min((now - start) / duration, 1);
+            el.textContent = String(Math.round(target * (1 - Math.pow(1 - t, 4))));
+            if (t < 1) requestAnimationFrame(step);
+          };
+          el.textContent = '0';
+          requestAnimationFrame(step);
+        }
+      },
+      { threshold: 0.6 },
+    );
+    els.forEach((el) => io.observe(el));
+  }
+  document.addEventListener('astro:page-load', initCounters);
+
+  // Live local time for each team's country, with a day/night icon.
+  let clockTimer: number | undefined;
+  function initClocks() {
+    window.clearInterval(clockTimer);
+    const clocks = document.querySelectorAll<HTMLElement>('[data-clocks] [data-tz]');
+    if (!clocks.length) return;
+    const update = () => {
+      const now = new Date();
+      clocks.forEach((c) => {
+        const tz = c.dataset.tz!;
+        const time = now.toLocaleTimeString('en-GB', { timeZone: tz, hour: '2-digit', minute: '2-digit' });
+        const hour = Number(now.toLocaleString('en-GB', { timeZone: tz, hour: '2-digit', hour12: false }));
+        c.querySelector('[data-time]')!.textContent = time;
+        c.querySelector('[data-sky]')!.textContent = hour >= 6 && hour < 19 ? '☀️' : '🌙';
+      });
+    };
+    update();
+    clockTimer = window.setInterval(update, 15000);
+  }
+  document.addEventListener('astro:page-load', initClocks);
+</script>

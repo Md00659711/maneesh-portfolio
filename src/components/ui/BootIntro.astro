@@ -1,0 +1,182 @@
+---
+// First-visit intro: a quick "installing Maneesh…" boot that splits open to reveal the site.
+// Plays once per browser session, is skippable, and never shows to reduced-motion users.
+// The page content is already rendered underneath, so search engines see it normally.
+const steps = [
+  ['Loading PHP 8.3', 'ok'],
+  ['Registering Gutenberg blocks', 'ok'],
+  ['Warming object cache', 'hit'],
+  ['Pairing with AI assistant', 'ok'],
+  ['Brewing chai', 'ok'],
+];
+---
+
+<div class="boot" data-boot aria-hidden="true" style="display:none">
+  <div class="boot__half boot__half--top"></div>
+  <div class="boot__half boot__half--bottom"></div>
+  <div class="boot__inner mono">
+    <p class="boot__cmd"><span>$</span> wp core install --title="Maneesh" --role=engineer</p>
+    <ul class="boot__steps">
+      {
+        steps.map(([label, status], i) => (
+          <li style={`--i:${i}`}>
+            <span class="boot__check">✓</span> {label} <span class="boot__dots" /> <b>{status}</b>
+          </li>
+        ))
+      }
+    </ul>
+    <div class="boot__bar"><span></span></div>
+    <p class="boot__done">Success: Software engineer ready. <span>Welcome.</span></p>
+    <p class="boot__skip">click or press any key to skip</p>
+  </div>
+</div>
+<script is:inline>
+  (function () {
+    var el = document.querySelector('[data-boot]');
+    var seen = false;
+    try { seen = sessionStorage.getItem('booted') === '1'; } catch (e) {}
+    if (!el || seen || matchMedia('(prefers-reduced-motion: reduce)').matches) { if (el) el.remove(); return; }
+    try { sessionStorage.setItem('booted', '1'); } catch (e) {}
+    el.style.display = '';
+    document.documentElement.style.overflow = 'hidden';
+    // Hold the hero's entrance animations until the curtain opens.
+    document.documentElement.classList.add('is-booting');
+    var done = false;
+    function finish() {
+      if (done) return;
+      done = true;
+      el.classList.add('is-leaving');
+      document.documentElement.style.overflow = '';
+      document.documentElement.classList.remove('is-booting');
+      setTimeout(function () { el.remove(); }, 900);
+      removeEventListener('keydown', finish);
+    }
+    el.addEventListener('click', finish);
+    addEventListener('keydown', finish);
+    setTimeout(finish, 2300);
+  })();
+</script>
+
+<style>
+  :global(.is-booting .hero),
+  :global(.is-booting .hero *) {
+    animation-play-state: paused !important;
+  }
+  .boot {
+    position: fixed;
+    inset: 0;
+    z-index: 200;
+    display: grid;
+    place-items: center;
+    cursor: pointer;
+  }
+  .boot__half {
+    position: absolute;
+    left: 0;
+    right: 0;
+    height: 50.5%;
+    background: #07080c;
+    transition: transform 0.85s cubic-bezier(0.76, 0, 0.24, 1);
+  }
+  .boot__half--top {
+    top: 0;
+  }
+  .boot__half--bottom {
+    bottom: 0;
+  }
+  .boot.is-leaving .boot__half--top {
+    transform: translateY(-100%);
+  }
+  .boot.is-leaving .boot__half--bottom {
+    transform: translateY(100%);
+  }
+  .boot__inner {
+    position: relative;
+    width: min(560px, calc(100vw - 40px));
+    color: #c9cfdb;
+    font-size: clamp(12px, 1.6vw, 14px);
+    transition: opacity 0.3s, transform 0.4s;
+  }
+  .boot.is-leaving .boot__inner {
+    opacity: 0;
+    transform: scale(0.96);
+  }
+  .boot__cmd {
+    color: #fff;
+    overflow: hidden;
+    white-space: nowrap;
+    width: 0;
+    animation: boot-type 0.5s steps(40) forwards;
+  }
+  .boot__cmd span {
+    color: #3ddc97;
+  }
+  .boot__steps {
+    list-style: none;
+    margin: 16px 0;
+    display: grid;
+    gap: 6px;
+  }
+  .boot__steps li {
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+    opacity: 0;
+    animation: boot-in 0.2s forwards;
+    animation-delay: calc(0.55s + var(--i) * 0.2s);
+  }
+  .boot__check {
+    color: #3ddc97;
+  }
+  .boot__dots {
+    flex: 1;
+    border-bottom: 1px dotted #3a4150;
+    transform: translateY(-4px);
+  }
+  .boot__steps b {
+    font-weight: 500;
+    color: #3ddc97;
+  }
+  .boot__bar {
+    height: 3px;
+    border-radius: 3px;
+    background: #1b1f2a;
+    overflow: hidden;
+  }
+  .boot__bar span {
+    display: block;
+    height: 100%;
+    width: 0;
+    background: linear-gradient(90deg, #7b8cff, #3ddc97);
+    animation: boot-bar 1.6s 0.4s cubic-bezier(0.65, 0, 0.35, 1) forwards;
+  }
+  .boot__done {
+    margin-top: 16px;
+    color: #3ddc97;
+    opacity: 0;
+    animation: boot-in 0.3s 1.75s forwards;
+  }
+  .boot__done span {
+    color: #fff;
+  }
+  .boot__skip {
+    margin-top: 28px;
+    font-size: 11px;
+    color: #4b5263;
+  }
+  @keyframes boot-type {
+    to {
+      width: 100%;
+    }
+  }
+  @keyframes boot-in {
+    to {
+      opacity: 1;
+    }
+  }
+  @keyframes boot-bar {
+    to {
+      width: 100%;
+    }
+  }
+</style>

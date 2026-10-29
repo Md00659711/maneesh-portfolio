@@ -1,0 +1,217 @@
+---
+import type { CollectionEntry } from 'astro:content';
+
+interface Props {
+  project: CollectionEntry<'projects'>;
+  index: number;
+}
+const { project, index } = Astro.props;
+const { title, summary, url, stack, highlights, year, accent } = project.data;
+const host = url ? new URL(url).hostname.replace(/^www\./, '') : `${project.id}.local`;
+const href = `/projects/${project.id}/`;
+---
+
+<article data-bp="ProjectCard.astro" class="card" style={`--card-accent:${accent}; --d:${index}`} data-reveal data-spotlight>
+  <div class="card__browser" aria-hidden="true">
+    <span class="card__dots"><i></i><i></i><i></i></span>
+    <span class="card__url mono">{host}</span>
+  </div>
+
+  <div class="card__visual" aria-hidden="true" transition:name={`visual-${project.id}`}>
+    <span class="card__index mono">{String(index + 1).padStart(2, '0')}</span>
+    <span class="card__big">{title}</span>
+  </div>
+
+  <div class="card__body">
+    <p class="card__year mono">{year}</p>
+    <h3 class="card__title" transition:name={`title-${project.id}`}>
+      <a href={href} class="card__link">{title}</a>
+    </h3>
+    <p class="card__summary">{summary}</p>
+    {
+      highlights.length > 0 && (
+        <ul class="card__hl">
+          {highlights.map((h) => (
+            <li>{h}</li>
+          ))}
+        </ul>
+      )
+    }
+    <ul class="card__stack">
+      {stack.slice(0, 5).map((s) => <li class="chip">{s}</li>)}
+    </ul>
+    <span class="card__more mono" aria-hidden="true">Read case study →</span>
+  </div>
+</article>
+
+<style>
+  .card {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    border: 1px solid var(--line);
+    border-radius: var(--radius-lg);
+    background: var(--surface);
+    overflow: hidden;
+    transition: border-color 0.3s, transform 0.5s var(--ease-out);
+  }
+  /* Spotlight that follows the cursor (position set by script). */
+  .card::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    pointer-events: none;
+    background: radial-gradient(400px circle at var(--x, -100%) var(--y, -100%), color-mix(in srgb, var(--card-accent) 14%, transparent), transparent 60%);
+    opacity: 0;
+    transition: opacity 0.3s;
+  }
+  .card:hover::before {
+    opacity: 1;
+  }
+  .card:hover {
+    border-color: color-mix(in srgb, var(--card-accent) 55%, var(--line));
+    transform: translateY(-6px);
+  }
+
+  .card__browser {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 11px 16px;
+    border-bottom: 1px solid var(--line);
+  }
+  .card__dots {
+    display: flex;
+    gap: 5px;
+  }
+  .card__dots i {
+    width: 9px;
+    height: 9px;
+    border-radius: 50%;
+    background: var(--line-strong);
+  }
+  .card__url {
+    flex: 1;
+    padding: 4px 12px;
+    border-radius: 999px;
+    background: var(--bg-elev-2);
+    font-size: 11.5px;
+    color: var(--text-muted);
+  }
+
+  .card__visual {
+    position: relative;
+    height: 200px;
+    display: flex;
+    align-items: flex-end;
+    padding: 20px 24px;
+    overflow: hidden;
+    background:
+      radial-gradient(circle at 80% 20%, color-mix(in srgb, var(--card-accent) 45%, transparent), transparent 55%),
+      linear-gradient(135deg, var(--bg-elev-2), var(--bg));
+  }
+  .card__visual::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-image: linear-gradient(var(--line) 1px, transparent 1px), linear-gradient(90deg, var(--line) 1px, transparent 1px);
+    background-size: 28px 28px;
+    opacity: 0.4;
+    mask-image: linear-gradient(transparent, #000);
+    -webkit-mask-image: linear-gradient(transparent, #000);
+  }
+  .card__index {
+    position: absolute;
+    top: 18px;
+    left: 24px;
+    font-size: 12px;
+    color: var(--card-accent);
+  }
+  .card__big {
+    translate: 0 var(--py, 0);
+    position: relative;
+    z-index: 1;
+    font-size: clamp(40px, 6vw, 64px);
+    font-weight: 700;
+    letter-spacing: -0.05em;
+    line-height: 0.9;
+    color: transparent;
+    -webkit-text-stroke: 1px color-mix(in srgb, var(--text) 50%, transparent);
+    transition: transform 0.6s var(--ease-out), color 0.4s;
+  }
+  .card:hover .card__big {
+    transform: translateX(8px);
+    color: color-mix(in srgb, var(--card-accent) 30%, transparent);
+  }
+
+  .card__body {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    padding: 24px;
+  }
+  .card__year {
+    font-size: 12px;
+    color: var(--text-faint);
+  }
+  .card__title {
+    margin: 8px 0 12px;
+    font-size: 26px;
+  }
+  .card__link {
+    text-decoration: none;
+  }
+  /* Makes the whole card clickable while keeping a single, accessible link. */
+  .card__link::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: 2;
+  }
+  .card__summary {
+    color: var(--text-muted);
+    font-size: 15.5px;
+  }
+  .card__hl {
+    display: grid;
+    gap: 6px;
+    margin-top: 16px;
+    list-style: none;
+    font-size: 14.5px;
+  }
+  .card__hl li::before {
+    content: '↗ ';
+    color: var(--card-accent);
+  }
+  .card__stack {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-top: 20px;
+    list-style: none;
+  }
+  .card__more {
+    margin-top: auto;
+    padding-top: 22px;
+    font-size: 13px;
+    color: var(--card-accent);
+    transition: letter-spacing 0.3s var(--ease-out);
+  }
+  .card:hover .card__more {
+    letter-spacing: 0.04em;
+  }
+</style>
+
+<script>
+  function initSpotlight() {
+    document.querySelectorAll<HTMLElement>('[data-spotlight]').forEach((card) => {
+      card.addEventListener('pointermove', (e) => {
+        const r = card.getBoundingClientRect();
+        card.style.setProperty('--x', `${e.clientX - r.left}px`);
+        card.style.setProperty('--y', `${e.clientY - r.top}px`);
+      });
+    });
+  }
+  document.addEventListener('astro:page-load', initSpotlight);
+</script>

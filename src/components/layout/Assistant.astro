@@ -1,0 +1,425 @@
+---
+// "Ask about Maneesh": a small in-browser assistant that answers from this site's own data.
+// It matches keywords (no LLM, no API, nothing leaves the browser) and streams the answer
+// word by word. To upgrade it to a real LLM later, replace `answer()` with a call to a
+// serverless function.
+import { getCollection } from 'astro:content';
+import { PROFILE, TEAMS, INTERESTS, STATS } from '@/data/profile';
+import { SKILL_GROUPS } from '@/data/skills';
+import { EXPERIENCE, EDUCATION } from '@/data/experience';
+
+const projects = (await getCollection('projects')).sort((a, b) => a.data.order - b.data.order);
+const current = EXPERIENCE[0];
+const countries = TEAMS.filter((t) => !t.home).map((t) => t.country);
+const skills = (slug: string) => SKILL_GROUPS.find((g) => g.slug === slug)?.items.join(', ') ?? '';
+
+// Each topic: keywords that trigger it, and the answer. Order matters only for ties.
+const topics = [
+  {
+    keys: ['hire', 'available', 'availability', 'freelance', 'job', 'open', 'contact', 'email', 'reach', 'work with'],
+    text: `Yes, ${PROFILE.firstName} is open to full-time roles and freelance work. The quickest way to reach him is email: ${PROFILE.email}. You can also download his CV from the CV page.`,
+    link: { label: 'Email Maneesh', href: `mailto:${PROFILE.email}` },
+  },
+  {
+    keys: ['experience', 'years', 'background', 'career', 'company', 'companies', 'current', 'work', 'sigma'],
+    text: `${PROFILE.firstName} has 6+ years of experience across ${EXPERIENCE.length} companies. He is currently a ${current.role} at ${current.company}, working on a multilingual WordPress platform with ~3M peak visits. Before that: ${EXPERIENCE.slice(1).map((j) => j.company).join(', ')}.`,
+    link: { label: 'See the career trek', href: '/#experience' },
+  },
+  {
+    keys: ['skill', 'skills', 'stack', 'tech', 'technology', 'technologies', 'tools', 'know', 'language'],
+    text: `Core stack: ${skills('wordpress')}. Frontend: ${skills('frontend')}. Plus ${skills('devops')}.`,
+    link: { label: 'Browse all skills', href: '/#skills' },
+  },
+  {
+    keys: ['woocommerce', 'ecommerce', 'e-commerce', 'store', 'shop', 'payment', 'checkout', 'gateway'],
+    text: `Deep WooCommerce work: custom checkout flows, product displays, discount rules and payment gateway integrations. The Sentry Medical project is a full medical-products store with Algolia search across the catalogue.`,
+    link: { label: 'Sentry Medical case study', href: '/projects/sentry-medical/' },
+  },
+  {
+    keys: ['performance', 'speed', 'fast', 'slow', 'optimise', 'optimize', 'optimization', 'cache', 'caching', 'query', '65'],
+    text: `His favourite example: at SiGMA World he batched several post-status lookups into a single indexed query with local caching, cutting real-world page load time by about 65%. He always measures first (Query Monitor, Grafana) and then fixes the real bottleneck.`,
+    link: { label: 'Watch the query demo', href: '/#performance' },
+  },
+  {
+    keys: ['ai', 'artificial', 'llm', 'gpt', 'claude', 'copilot', 'generative', 'prompt', 'machine'],
+    text: `AI is part of ${PROFILE.firstName}'s daily workflow: exploring approaches, scaffolding code and reviewing diffs faster, with every line still read and owned by him. He is deepening his Generative AI skills through the Namaste AI program.`,
+    link: { label: 'Read his engineering mindset', href: '/#mindset' },
+  },
+  {
+    keys: ['gutenberg', 'block', 'blocks', 'react', 'editor', 'fse'],
+    text: `He builds custom Gutenberg blocks in React for editorial and marketing teams, so they can build pages without a developer. He pairs them with ACF where structured content makes more sense.`,
+  },
+  {
+    keys: ['multilingual', 'wpml', 'language', 'languages', 'translation', 'localisation', 'localization', 'multisite'],
+    text: `Multilingual and multi-network WordPress is a speciality: WPML logic, localised metadata and sitemaps, and WordPress Multisite.`,
+  },
+  {
+    keys: ['devops', 'docker', 'deploy', 'ci', 'cd', 'pipeline', 'github', 'server', 'linux', 'grafana'],
+    text: `He works with Docker for local and server environments, CI/CD with GitHub Actions and Buddy, Linux servers, and Grafana dashboards for monitoring.`,
+  },
+  {
+    keys: ['project', 'projects', 'portfolio', 'built', 'case'],
+    text: `Selected projects: ${projects.map((p) => `${p.data.title} (${p.data.summary.split('.')[0].toLowerCase()})`).join('; ')}.`,
+    link: { label: 'All projects', href: '/projects/' },
+  },
+  {
+    keys: ['where', 'location', 'based', 'live', 'remote', 'timezone', 'time', 'country', 'countries', 'team', 'teams'],
+    text: `He is based in ${PROFILE.location} and originally from ${PROFILE.roots}. He has worked with distributed teams in ${countries.join(', ')}, so remote and async work is normal for him.`,
+  },
+  {
+    keys: ['hobby', 'hobbies', 'free', 'fun', 'cricket', 'trek', 'trekking', 'gym', 'fitness', 'sport', 'health', 'pahadi', 'uttarakhand', 'kumaon', 'kumaoni', 'almora', 'culture'],
+    text: `Off the clock he is a proud Kumaoni Pahadi from ${PROFILE.roots}: ${INTERESTS.map((i) => i.title.toLowerCase()).join(', ')}. He says a long climb clears the head better than any debugger.`,
+    link: { label: 'Off the clock', href: '/#life' },
+  },
+  {
+    keys: ['education', 'degree', 'study', 'studied', 'diploma', 'certification', 'college', 'university'],
+    text: `${EDUCATION.map((e) => `${e.title} (${e.org}${e.period ? `, ${e.period}` : ''})`).join('; ')}.`,
+  },
+  {
+    keys: ['why', 'should', 'strength', 'strengths', 'best', 'different', 'unique', 'value'],
+    text: `In short: ${STATS.map((s) => `${s.value}${s.suffix} ${s.label.toLowerCase()}`).join(', ')}. He thinks like an engineer (measure, own it to production, leave code better) and communicates clearly across time zones.`,
+  },
+];
+const fallback = `I don't have an answer for that one. Try asking about his experience, skills, performance work, AI workflow or availability, or email him at ${PROFILE.email}.`;
+const suggestions = ['Is he available?', 'What is his stack?', 'Biggest performance win?', 'How does he use AI?', 'Hobbies?'];
+---
+
+<div class="ask" data-ask>
+  <button type="button" class="ask__fab" data-ask-toggle aria-expanded="false" aria-controls="ask-panel">
+    <span class="ask__spark" aria-hidden="true">✦</span>
+    <span class="ask__fab-label">Ask about me</span>
+  </button>
+
+  <section class="ask__panel" id="ask-panel" aria-label="Ask about Maneesh" hidden>
+    <header class="ask__head">
+      <span class="ask__avatar" aria-hidden="true">M/</span>
+      <div>
+        <p class="ask__name">Ask about {PROFILE.firstName}</p>
+        <p class="ask__sub mono">answers from this site's data · runs in your browser</p>
+      </div>
+      <button type="button" class="ask__x" data-ask-toggle aria-label="Close">×</button>
+    </header>
+
+    <div class="ask__log" data-ask-log aria-live="polite">
+      <p class="msg msg--bot">Hi! I can answer questions about {PROFILE.firstName}'s work, skills and availability. Pick one or type your own.</p>
+    </div>
+
+    <div class="ask__chips" data-ask-chips>
+      {suggestions.map((s) => <button type="button" class="ask__chip">{s}</button>)}
+    </div>
+
+    <form class="ask__form" data-ask-form>
+      <input type="text" placeholder="e.g. Does he know WooCommerce?" aria-label="Your question" data-ask-input autocomplete="off" />
+      <button type="submit" aria-label="Send">↑</button>
+    </form>
+  </section>
+</div>
+<script type="application/json" id="ask-data" set:html={JSON.stringify({ topics, fallback })} />
+
+<style>
+  .ask {
+    position: fixed;
+    right: 16px;
+    bottom: 16px;
+    z-index: 55;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 12px;
+  }
+  .ask__fab {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 18px 12px 14px;
+    border: 1px solid color-mix(in srgb, var(--accent) 50%, var(--line));
+    border-radius: 999px;
+    background: var(--bg-elev);
+    color: var(--text);
+    font: 500 14px var(--font-display);
+    box-shadow: var(--shadow);
+    cursor: pointer;
+    transition: transform 0.3s var(--ease-spring);
+  }
+  .ask__fab:hover {
+    transform: translateY(-3px);
+  }
+  .ask__spark {
+    display: grid;
+    place-items: center;
+    width: 26px;
+    height: 26px;
+    border-radius: 50%;
+    background: conic-gradient(from 0deg, var(--accent), var(--ok), var(--hot), var(--accent));
+    color: #fff;
+    font-size: 13px;
+    animation: spin 6s linear infinite;
+  }
+  @keyframes spin {
+    to {
+      rotate: 360deg;
+    }
+  }
+
+  .ask__panel {
+    display: flex;
+    flex-direction: column;
+    width: min(380px, calc(100vw - 32px));
+    height: min(520px, calc(100svh - 120px));
+    border: 1px solid var(--line-strong);
+    border-radius: var(--radius-lg);
+    background: var(--bg-elev);
+    box-shadow: var(--shadow);
+    overflow: hidden;
+    transform-origin: bottom right;
+    animation: ask-in 0.35s var(--ease-out);
+  }
+  .ask__panel[hidden] {
+    display: none;
+  }
+  @keyframes ask-in {
+    from {
+      opacity: 0;
+      transform: scale(0.92) translateY(10px);
+    }
+  }
+  .ask__head {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 14px 16px;
+    border-bottom: 1px solid var(--line);
+  }
+  .ask__avatar {
+    display: grid;
+    place-items: center;
+    width: 36px;
+    height: 36px;
+    border-radius: 10px;
+    background: var(--text);
+    color: var(--bg);
+    font-weight: 700;
+    font-size: 13px;
+  }
+  .ask__name {
+    font-weight: 600;
+    font-size: 15px;
+  }
+  .ask__sub {
+    font-size: 10.5px;
+    color: var(--text-faint);
+  }
+  .ask__x {
+    margin-left: auto;
+    width: 30px;
+    height: 30px;
+    border: 0;
+    border-radius: 8px;
+    background: var(--bg-elev-2);
+    color: var(--text-muted);
+    font-size: 18px;
+    cursor: pointer;
+  }
+  .ask__log {
+    flex: 1;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    padding: 16px;
+  }
+  .ask__log :global(.msg) {
+    max-width: 88%;
+    padding: 10px 13px;
+    border-radius: 14px;
+    font-size: 14.5px;
+    line-height: 1.5;
+    animation: msg-in 0.3s var(--ease-out);
+  }
+  .ask__log :global(.msg--bot) {
+    align-self: flex-start;
+    background: var(--bg-elev-2);
+    border-bottom-left-radius: 4px;
+  }
+  .ask__log :global(.msg--me) {
+    align-self: flex-end;
+    background: var(--grad-btn);
+    color: #fff;
+    border-bottom-right-radius: 4px;
+  }
+  .ask__log :global(.msg a) {
+    display: inline-block;
+    margin-top: 8px;
+    color: var(--accent);
+    font-weight: 500;
+    text-decoration: none;
+  }
+  .ask__log :global(.dots) {
+    letter-spacing: 2px;
+    animation: blink 1s steps(2) infinite;
+  }
+  @keyframes msg-in {
+    from {
+      opacity: 0;
+      transform: translateY(6px);
+    }
+  }
+  @keyframes blink {
+    50% {
+      opacity: 0.3;
+    }
+  }
+  .ask__chips {
+    display: flex;
+    gap: 6px;
+    padding: 0 16px 10px;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+  .ask__chip {
+    flex-shrink: 0;
+    padding: 6px 11px;
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    background: none;
+    color: var(--text-muted);
+    font: 500 12.5px var(--font-display);
+    cursor: pointer;
+  }
+  .ask__chip:hover {
+    color: var(--accent);
+    border-color: var(--accent);
+  }
+  .ask__form {
+    display: flex;
+    gap: 8px;
+    padding: 12px 14px 14px;
+    border-top: 1px solid var(--line);
+  }
+  .ask__form input {
+    flex: 1;
+    min-width: 0;
+    padding: 10px 12px;
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    background: var(--bg);
+    color: var(--text);
+    font: 400 14.5px var(--font-display);
+    outline: none;
+  }
+  .ask__form input:focus {
+    border-color: var(--accent);
+  }
+  .ask__form button {
+    width: 40px;
+    border: 0;
+    border-radius: 10px;
+    background: var(--grad-btn);
+    color: #fff;
+    font-size: 17px;
+    cursor: pointer;
+  }
+
+  /* Leave room for the Blueprint HUD on the left and keep the button compact on phones. */
+  @media (max-width: 600px) {
+    :global(html[data-blueprint]) .ask {
+      display: none;
+    }
+    .ask {
+      right: 12px;
+      bottom: 12px;
+    }
+    .ask__fab-label {
+      display: none;
+    }
+    .ask__fab {
+      padding: 10px;
+    }
+  }
+  @media print {
+    .ask {
+      display: none;
+    }
+  }
+</style>
+
+<script>
+  type Topic = { keys: string[]; text: string; link?: { label: string; href: string } };
+
+  function initAsk() {
+    const root = document.querySelector<HTMLElement>('[data-ask]');
+    const panel = root?.querySelector<HTMLElement>('.ask__panel');
+    const log = root?.querySelector<HTMLElement>('[data-ask-log]');
+    const form = root?.querySelector<HTMLFormElement>('[data-ask-form]');
+    const input = root?.querySelector<HTMLInputElement>('[data-ask-input]');
+    const raw = document.getElementById('ask-data')?.textContent;
+    if (!root || !panel || !log || !form || !input || !raw) return;
+    const { topics, fallback } = JSON.parse(raw) as { topics: Topic[]; fallback: string };
+    const fab = root.querySelector<HTMLButtonElement>('.ask__fab')!;
+    let busy = false;
+
+    const toggle = (open = panel.hidden) => {
+      panel.hidden = !open;
+      fab.setAttribute('aria-expanded', String(open));
+      if (open) input.focus();
+    };
+    root.querySelectorAll('[data-ask-toggle]').forEach((b) => b.addEventListener('click', () => toggle()));
+
+    // Score each topic by how many of its keywords appear in the question.
+    const answer = (q: string): Topic | null => {
+      const words = q.toLowerCase().replace(/[^a-z0-9\s-]/g, ' ');
+      let best: Topic | null = null;
+      let bestScore = 0;
+      for (const t of topics) {
+        const score = t.keys.reduce((n, k) => n + (new RegExp(`\\b${k}\\b`).test(words) ? k.length : 0), 0);
+        if (score > bestScore) (best = t), (bestScore = score);
+      }
+      return best;
+    };
+
+    const add = (cls: string, text = '') => {
+      const p = document.createElement('p');
+      p.className = `msg ${cls}`;
+      p.textContent = text;
+      log.append(p);
+      log.scrollTop = log.scrollHeight;
+      return p;
+    };
+
+    const ask = async (q: string) => {
+      if (busy || !q.trim()) return;
+      busy = true;
+      add('msg--me', q);
+      const bubble = add('msg--bot');
+      bubble.innerHTML = '<span class="dots">•••</span>';
+      await new Promise((r) => setTimeout(r, 450));
+      const topic = answer(q);
+      const words = (topic?.text ?? fallback).split(' ');
+      bubble.textContent = '';
+      // Stream the answer word by word, like a chat model would.
+      for (const w of words) {
+        bubble.textContent += (bubble.textContent ? ' ' : '') + w;
+        log.scrollTop = log.scrollHeight;
+        await new Promise((r) => setTimeout(r, 22));
+      }
+      if (topic?.link) {
+        const a = document.createElement('a');
+        a.href = topic.link.href;
+        a.textContent = `${topic.link.label} →`;
+        if (!topic.link.href.startsWith('mailto')) a.addEventListener('click', () => toggle(false));
+        bubble.append(document.createElement('br'), a);
+      }
+      log.scrollTop = log.scrollHeight;
+      busy = false;
+    };
+
+    form.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const q = input.value;
+      input.value = '';
+      ask(q);
+    });
+    root.querySelectorAll<HTMLButtonElement>('.ask__chip').forEach((c) => c.addEventListener('click', () => ask(c.textContent ?? '')));
+  }
+  document.addEventListener('astro:page-load', initAsk);
+</script>

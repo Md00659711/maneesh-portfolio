@@ -1,0 +1,28 @@
+---
+import { getCollection } from 'astro:content';
+import Block from '@/components/ui/Block.astro';
+import ProjectCard from '@/components/ui/ProjectCard.astro';
+
+const projects = (await getCollection('projects', ({ data }) => data.featured)).sort((a, b) => a.data.order - b.data.order);
+---
+
+<Block id="projects" block="maneesh/query-loop" eyebrow="// WP_Query( 'post_type' => 'project' )" title="Selected work.">
+  <div class="projects">
+    {projects.map((p, i) => <ProjectCard project={p} index={i} />)}
+  </div>
+  <p class="projects__all" data-reveal>
+    <a href="/projects/" class="btn">View all projects →</a>
+  </p>
+</Block>
+
+<style>
+  .projects {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 420px), 1fr));
+    gap: 20px;
+  }
+  .projects__all {
+    margin-top: 36px;
+    text-align: center;
+  }
+</style>

@@ -1,0 +1,206 @@
+---
+import Block from '@/components/ui/Block.astro';
+import { PROFILE } from '@/data/profile';
+---
+
+<Block id="contact" block="core/publish" class="contact-block">
+  <div class="contact" data-reveal>
+    <div class="contact__main">
+      <p class="contact__eyebrow mono">// ready to publish?</p>
+      <h2 class="contact__title" id="contact-title">
+        Got a WordPress project <span>that needs to scale?</span>
+      </h2>
+      <p class="contact__lead">
+        I'm open to full-time roles and freelance work: custom themes, Gutenberg blocks, WooCommerce, performance audits.
+      </p>
+      <div class="contact__actions">
+        <a href={`mailto:${PROFILE.email}`} class="btn btn--primary contact__publish" data-magnetic>
+          Publish → Say hello
+        </a>
+        <button type="button" class="btn mono" data-copy={PROFILE.email}>
+          <span data-copy-label>{PROFILE.email}</span>
+        </button>
+      </div>
+    </div>
+
+    <aside class="panel" aria-label="Profile summary" data-bp="PublishPanel">
+      <p class="panel__head mono">Post settings</p>
+      <dl class="panel__rows">
+        <div><dt>Status</dt><dd><span class="dot"></span> Available</dd></div>
+        <div><dt>Location</dt><dd>{PROFILE.location.split(',')[0]}, IN</dd></div>
+        <div><dt>Hometown</dt><dd>Kumaon ⛰</dd></div>
+        <div><dt>Role</dt><dd>{PROFILE.role} · WordPress</dd></div>
+        <div>
+          <dt>LinkedIn</dt>
+          <dd><a href={PROFILE.links.linkedin} target="_blank" rel="noopener">View profile ↗</a></dd>
+        </div>
+        <div>
+          <dt>GitHub</dt>
+          <dd><a href={PROFILE.links.github} target="_blank" rel="noopener">Md00659711 ↗</a></dd>
+        </div>
+        <div>
+          <dt>WordPress.org</dt>
+          <dd><a href={PROFILE.links.wporg} target="_blank" rel="noopener">manishdhanik ↗</a></dd>
+        </div>
+      </dl>
+    </aside>
+  </div>
+</Block>
+
+<style>
+  /* The closing call-to-action is always a black-gradient panel (in light and dark mode),
+     so it reads as the end of the page. It sets its own dark palette for everything inside. */
+  .contact {
+    --bg: #07080b;
+    --bg-elev: #12141a;
+    --bg-elev-2: #1a1d26;
+    --line: #23262f;
+    --line-strong: #343947;
+    --text: #eef0f5;
+    --text-muted: #a1a8b8;
+    --text-faint: #6b7385;
+    --accent: #8f9cff;
+    --ok: #3ddc97;
+    --btn-surface: linear-gradient(180deg, #252935 0%, #12141b 100%);
+    --btn-highlight: inset 0 1px 0 rgb(255 255 255 / 0.08);
+    position: relative;
+    scale: var(--cs, 1);
+    display: grid;
+    grid-template-columns: 1.5fr 1fr;
+    gap: clamp(28px, 5vw, 64px);
+    padding: clamp(28px, 5vw, 56px);
+    border: 1px solid var(--line-strong);
+    border-radius: calc(var(--radius-lg) + 8px);
+    background: var(--grad-ink);
+    color: var(--text);
+    color-scheme: dark;
+    overflow: hidden;
+    isolation: isolate;
+  }
+  /* Soft spotlight that follows the cursor (position set by script). */
+  .contact::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    background: radial-gradient(500px circle at var(--sx, 80%) var(--sy, 0%), rgb(143 156 255 / 0.16), transparent 60%);
+    transition: background-position 0.2s;
+  }
+  .contact__eyebrow {
+    font-size: 13px;
+    color: var(--accent);
+  }
+  .contact__title {
+    margin-top: 14px;
+    font-size: clamp(32px, 5vw, 58px);
+  }
+  .contact__title span {
+    color: var(--text-faint);
+  }
+  .contact__lead {
+    margin-top: 20px;
+    max-width: 520px;
+    color: var(--text-muted);
+  }
+  .contact__actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-top: 32px;
+  }
+  .contact__actions .mono {
+    font-size: 13.5px;
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .panel {
+    align-self: start;
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    background: var(--bg);
+    overflow: hidden;
+  }
+  .panel__head {
+    padding: 12px 18px;
+    border-bottom: 1px solid var(--line);
+    font-size: 12px;
+    color: var(--text-faint);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+  }
+  .panel__rows {
+    margin: 0;
+  }
+  .panel__rows div {
+    display: flex;
+    justify-content: space-between;
+    gap: 16px;
+    padding: 13px 18px;
+    border-bottom: 1px solid var(--line);
+    font-size: 14.5px;
+  }
+  .panel__rows div:last-child {
+    border-bottom: 0;
+  }
+  .panel__rows dt {
+    color: var(--text-muted);
+  }
+  .panel__rows dd {
+    margin: 0;
+    text-align: right;
+  }
+  .panel__rows a {
+    color: var(--accent);
+    text-decoration: none;
+  }
+  .panel__rows a:hover {
+    text-decoration: underline;
+  }
+  .dot {
+    display: inline-block;
+    width: 7px;
+    height: 7px;
+    margin-right: 4px;
+    border-radius: 50%;
+    background: var(--ok);
+  }
+
+  @media (max-width: 860px) {
+    .contact {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>
+
+<script>
+  function initSpot() {
+    const panel = document.querySelector<HTMLElement>('.contact');
+    if (!panel || !matchMedia('(pointer: fine)').matches) return;
+    panel.addEventListener('pointermove', (e) => {
+      const r = panel.getBoundingClientRect();
+      panel.style.setProperty('--sx', `${e.clientX - r.left}px`);
+      panel.style.setProperty('--sy', `${e.clientY - r.top}px`);
+    });
+  }
+  document.addEventListener('astro:page-load', initSpot);
+
+  function initCopy() {
+    document.querySelectorAll<HTMLButtonElement>('[data-copy]').forEach((btn) => {
+      const label = btn.querySelector<HTMLElement>('[data-copy-label]');
+      if (!label) return;
+      const original = label.textContent;
+      btn.addEventListener('click', async () => {
+        try {
+          await navigator.clipboard.writeText(btn.dataset.copy ?? '');
+          label.textContent = '✓ Copied to clipboard';
+        } catch {
+          label.textContent = 'Copy failed: select it manually';
+        }
+        setTimeout(() => (label.textContent = original), 2000);
+      });
+    });
+  }
+  document.addEventListener('astro:page-load', initCopy);
+</script>

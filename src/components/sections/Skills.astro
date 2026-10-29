@@ -1,0 +1,189 @@
+---
+import Block from '@/components/ui/Block.astro';
+import { SKILL_GROUPS } from '@/data/skills';
+const total = SKILL_GROUPS.reduce((n, g) => n + g.items.length, 0);
+---
+
+<Block id="skills" block="maneesh/plugins" eyebrow="// installed plugins" title="The toolkit, <em>all active.</em>">
+  <div class="plugins" data-plugins>
+    <div class="plugins__tabs" role="toolbar" aria-label="Filter skills" data-reveal>
+      <button type="button" class="tab is-active" data-filter="all" aria-pressed="true">
+        All <span class="tab__count">{total}</span>
+      </button>
+      {
+        SKILL_GROUPS.map((g) => (
+          <button type="button" class="tab" data-filter={g.slug} aria-pressed="false">
+            {g.name} <span class="tab__count">{g.items.length}</span>
+          </button>
+        ))
+      }
+    </div>
+
+    <ul class="plugins__grid">
+      {
+        SKILL_GROUPS.map((g, i) => (
+          <li class="plugin" data-bp="SkillGroup" data-group={g.slug} data-reveal style={`--d:${i % 3}`}>
+            <div class="plugin__head">
+              <h3>{g.name}</h3>
+              <span class="plugin__status mono">
+                <span class="toggle" aria-hidden="true" />
+                Active
+              </span>
+            </div>
+            <p class="plugin__desc">{g.description}</p>
+            <ul class="plugin__items">
+              {g.items.map((item) => (
+                <li class="chip">{item}</li>
+              ))}
+            </ul>
+          </li>
+        ))
+      }
+    </ul>
+  </div>
+</Block>
+
+<style>
+  .plugins__tabs {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 28px;
+    overflow-x: auto;
+    padding-bottom: 6px;
+    scrollbar-width: none;
+  }
+  .plugins__tabs::-webkit-scrollbar {
+    display: none;
+  }
+  .tab {
+    flex-shrink: 0;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 9px 16px;
+    border-radius: 999px;
+    border: 1px solid var(--line);
+    background: transparent;
+    color: var(--text-muted);
+    font: 500 14px var(--font-display);
+    cursor: pointer;
+    transition: all 0.25s;
+  }
+  .tab:hover {
+    color: var(--text);
+    border-color: var(--line-strong);
+  }
+  .tab.is-active {
+    background: var(--text);
+    border-color: var(--text);
+    color: var(--bg);
+  }
+  .tab__count {
+    font: 500 11px var(--font-mono);
+    opacity: 0.6;
+  }
+
+  .plugins__grid {
+    list-style: none;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(min(100%, 330px), 1fr));
+    gap: 16px;
+  }
+  .plugin {
+    position: relative;
+    padding: 24px;
+    border: 1px solid var(--line);
+    border-radius: var(--radius-lg);
+    background: var(--surface);
+    transition: border-color 0.3s, transform 0.4s var(--ease-out), opacity 0.4s;
+  }
+  .plugin:hover {
+    border-color: color-mix(in srgb, var(--accent) 50%, var(--line));
+    transform: translateY(-4px);
+  }
+  .plugin.is-dim {
+    opacity: 0.18;
+    transform: scale(0.98);
+  }
+  .plugin__head {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+  }
+  .plugin__head h3 {
+    font-size: 19px;
+  }
+  .plugin__status {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 11.5px;
+    color: var(--ok);
+  }
+  .toggle {
+    position: relative;
+    width: 28px;
+    height: 16px;
+    border-radius: 999px;
+    background: var(--ok);
+  }
+  .toggle::after {
+    content: '';
+    position: absolute;
+    top: 2px;
+    right: 2px;
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background: var(--bg);
+    transition: right 0.3s var(--ease-spring);
+  }
+  .plugin.is-dim .toggle {
+    background: var(--line-strong);
+  }
+  .plugin.is-dim .toggle::after {
+    right: 14px;
+  }
+  .plugin.is-dim .plugin__status {
+    color: var(--text-faint);
+  }
+  .plugin__desc {
+    margin: 8px 0 18px;
+    font-size: 15px;
+    color: var(--text-muted);
+  }
+  .plugin__items {
+    list-style: none;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 7px;
+  }
+  .plugin__items .chip {
+    transition: color 0.2s, border-color 0.2s;
+  }
+  .plugin__items .chip:hover {
+    color: var(--accent);
+    border-color: var(--accent);
+  }
+</style>
+
+<script>
+  function initSkills() {
+    const root = document.querySelector('[data-plugins]');
+    if (!root) return;
+    const tabs = root.querySelectorAll<HTMLButtonElement>('[data-filter]');
+    const cards = root.querySelectorAll<HTMLElement>('[data-group]');
+    tabs.forEach((tab) =>
+      tab.addEventListener('click', () => {
+        const f = tab.dataset.filter;
+        tabs.forEach((t) => {
+          t.classList.toggle('is-active', t === tab);
+          t.setAttribute('aria-pressed', String(t === tab));
+        });
+        cards.forEach((c) => c.classList.toggle('is-dim', f !== 'all' && c.dataset.group !== f));
+      }),
+    );
+  }
+  document.addEventListener('astro:page-load', initSkills);
+</script>

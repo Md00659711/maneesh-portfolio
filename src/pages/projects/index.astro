@@ -1,0 +1,52 @@
+---
+import { getCollection } from 'astro:content';
+import BaseLayout from '@/layouts/BaseLayout.astro';
+import ProjectCard from '@/components/ui/ProjectCard.astro';
+import Breadcrumbs from '@/components/ui/Breadcrumbs.astro';
+
+const projects = (await getCollection('projects')).sort((a, b) => a.data.order - b.data.order);
+---
+
+<BaseLayout title="Projects" description="WordPress, WooCommerce and Gutenberg projects by Maneesh Singh Dhanik: case studies with the stack, the challenge and the results.">
+  <section class="section page">
+    <div class="container">
+      <Breadcrumbs items={[{ label: 'Projects', href: '/projects/' }]} />
+      <header class="page__head" data-reveal>
+        <p class="page__eyebrow mono">// archive-project.php</p>
+        <h1 class="page__title">Projects &amp; case studies</h1>
+        <p class="page__lead">A closer look at the platforms I've built and the problems they solved.</p>
+      </header>
+      <div class="grid">
+        {projects.map((p, i) => <ProjectCard project={p} index={i} />)}
+      </div>
+    </div>
+  </section>
+</BaseLayout>
+
+<style>
+  .page {
+    padding-top: 140px;
+  }
+  .page__head {
+    max-width: 760px;
+    margin-block: 24px 56px;
+  }
+  .page__eyebrow {
+    font-size: 13px;
+    color: var(--accent);
+  }
+  .page__title {
+    margin-top: 14px;
+    font-size: clamp(40px, 7vw, 80px);
+  }
+  .page__lead {
+    margin-top: 18px;
+    font-size: 19px;
+    color: var(--text-muted);
+  }
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 420px), 1fr));
+    gap: 20px;
+  }
+</style>

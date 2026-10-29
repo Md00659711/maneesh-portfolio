@@ -1,0 +1,351 @@
+---
+// A pretend WP-CLI: press ` (backtick) anywhere, or pick "Open terminal" in the / menu.
+// All answers come from the same data files as the rest of the site.
+import { getCollection } from 'astro:content';
+import { PROFILE, INTERESTS, TEAMS } from '@/data/profile';
+import { SKILL_GROUPS } from '@/data/skills';
+import { EXPERIENCE } from '@/data/experience';
+
+const projects = (await getCollection('projects')).sort((a, b) => a.data.order - b.data.order);
+const data = {
+  profile: {
+    name: PROFILE.name,
+    role: PROFILE.role,
+    email: PROFILE.email,
+    location: PROFILE.location,
+    roots: PROFILE.roots,
+    links: PROFILE.links,
+  },
+  plugins: SKILL_GROUPS.map((g) => ({ name: g.slug, title: g.name, count: g.items.length, items: g.items })),
+  projects: projects.map((p) => ({ id: p.id, title: p.data.title, year: p.data.year })),
+  jobs: EXPERIENCE.map((j) => ({ company: j.company, role: j.role, start: j.start, end: j.end })),
+  interests: INTERESTS.map((i) => i.title),
+  countries: TEAMS.filter((t) => !t.home).map((t) => t.code),
+};
+---
+
+<dialog class="term" data-term aria-label="WP-CLI terminal">
+  <div class="term__bar">
+    <span class="term__dots" aria-hidden="true"><i></i><i></i><i></i></span>
+    <span class="mono">maneesh@portfolio: ~/public_html</span>
+    <button type="button" class="term__close mono" data-term-close aria-label="Close terminal">esc</button>
+  </div>
+  <div class="term__out mono" data-term-out aria-live="polite"></div>
+  <form class="term__form mono" data-term-form>
+    <label for="term-in" class="term__prompt">$</label>
+    <input id="term-in" class="term__in" data-term-in autocomplete="off" spellcheck="false" autocapitalize="off" />
+  </form>
+</dialog>
+<script type="application/json" id="term-data" set:html={JSON.stringify(data)} />
+
+<style>
+  .term {
+    width: min(760px, calc(100vw - 24px));
+    height: min(520px, calc(100svh - 120px));
+    margin: auto auto 24px;
+    padding: 0;
+    border: 1px solid #2e3440;
+    border-radius: 14px;
+    background: #0d1117;
+    color: #d7dce5;
+    box-shadow: 0 30px 80px -20px rgb(0 0 0 / 0.7);
+    overflow: hidden;
+  }
+  .term[open] {
+    display: flex;
+    flex-direction: column;
+    animation: term-up 0.35s var(--ease-out);
+  }
+  .term::backdrop {
+    background: rgb(0 0 0 / 0.35);
+  }
+  @keyframes term-up {
+    from {
+      opacity: 0;
+      transform: translateY(30px);
+    }
+  }
+  .term__bar {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 10px 14px;
+    border-bottom: 1px solid #222833;
+    font-size: 12px;
+    color: #8b93a5;
+  }
+  .term__dots {
+    display: flex;
+    gap: 6px;
+  }
+  .term__dots i {
+    width: 11px;
+    height: 11px;
+    border-radius: 50%;
+    background: #ff5f57;
+  }
+  .term__dots i:nth-child(2) {
+    background: #febc2e;
+  }
+  .term__dots i:nth-child(3) {
+    background: #28c840;
+  }
+  .term__close {
+    margin-left: auto;
+    padding: 2px 8px;
+    border: 1px solid #2e3440;
+    border-radius: 5px;
+    background: none;
+    color: #8b93a5;
+    font-size: 11px;
+    cursor: pointer;
+  }
+  .term__out {
+    flex: 1;
+    overflow-y: auto;
+    padding: 14px 16px 4px;
+    font-size: 13px;
+    line-height: 1.6;
+    white-space: pre-wrap;
+    word-break: break-word;
+  }
+  .term__out :global(.t-cmd) {
+    color: #fff;
+  }
+  .term__out :global(.t-dim) {
+    color: #6b7385;
+  }
+  .term__out :global(.t-ok) {
+    color: #3ddc97;
+  }
+  .term__out :global(.t-acc) {
+    color: #8b9bff;
+  }
+  .term__out :global(.t-err) {
+    color: #ff7b72;
+  }
+  .term__form {
+    display: flex;
+    gap: 10px;
+    padding: 6px 16px 16px;
+    font-size: 13px;
+  }
+  .term__prompt {
+    color: #3ddc97;
+  }
+  .term__in {
+    flex: 1;
+    min-width: 0;
+    border: 0;
+    outline: none;
+    background: none;
+    color: #fff;
+    font: inherit;
+    caret-color: #8b9bff;
+  }
+</style>
+
+<script>
+  import { navigate } from 'astro:transitions/client';
+
+  type Data = {
+    profile: { name: string; role: string; email: string; location: string; roots: string; links: Record<string, string> };
+    plugins: { name: string; title: string; count: number; items: string[] }[];
+    projects: { id: string; title: string; year: string }[];
+    jobs: { company: string; role: string; start: string; end: string | null }[];
+    interests: string[];
+    countries: string[];
+  };
+  type Line = [text: string, cls?: string];
+
+  const pad = (s: string, n: number) => s.padEnd(n).slice(0, n);
+  const table = (head: string[], rows: string[][], widths: number[]): Line[] => [
+    [head.map((h, i) => pad(h, widths[i])).join(' '), 't-dim'],
+    ...rows.map((r): Line => [r.map((c, i) => pad(c, widths[i])).join(' ')]),
+  ];
+
+  function commands(d: Data): Record<string, (args: string[]) => Line[] | void> {
+    return {
+      help: () => [
+        ['Available commands:', 't-acc'],
+        ['  wp user get maneesh          who am I'],
+        ['  wp plugin list               skills, as installed plugins'],
+        ['  wp plugin get <name>         details of one skill group'],
+        ['  wp post list --post_type=project'],
+        ['  wp career log                where I have worked'],
+        ['  wp option get hometown'],
+        ['  wp cricket score  ·  wp trek --summit  ·  wp gym --today'],
+        ['  open <cv|projects|contact>   go to a page'],
+        ['  wp blueprint                 see how this page is engineered'],
+        ['  theme <dark|light>  ·  clear  ·  exit'],
+      ],
+      'wp user get maneesh': () =>
+        table(
+          ['Field', 'Value'],
+          [
+            ['display_name', d.profile.name],
+            ['role', d.profile.role],
+            ['user_email', d.profile.email],
+            ['location', d.profile.location],
+            ['hometown', `${d.profile.roots} ⛰`],
+            ['teams', d.countries.join(', ')],
+            ['github', d.profile.links.github],
+          ],
+          [14, 60],
+        ),
+      'wp plugin list': () => [
+        ...table(
+          ['name', 'status', 'skills', 'title'],
+          d.plugins.map((p) => [p.name, 'active', String(p.count), p.title]),
+          [12, 8, 7, 24],
+        ),
+        [`Success: ${d.plugins.length} plugins active. Try "wp plugin get wordpress".`, 't-ok'],
+      ],
+      'wp plugin get': ([name]) => {
+        const p = d.plugins.find((x) => x.name === name);
+        if (!p) return [[`Error: The '${name ?? ''}' plugin could not be found. Try one of: ${d.plugins.map((x) => x.name).join(', ')}`, 't-err']];
+        return [[p.title, 't-acc'], [p.items.join(' · ')]];
+      },
+      'wp post list': () =>
+        table(
+          ['ID', 'post_title', 'post_date', 'url'],
+          d.projects.map((p, i) => [String(101 + i), p.title, p.year, `/projects/${p.id}/`]),
+          [5, 18, 20, 30],
+        ),
+      'wp career log': () =>
+        d.jobs.flatMap((j, i): Line[] => [
+          [`${i === 0 ? '* ' : '| '}${j.start} → ${j.end ?? 'present'}  ${j.role} @ ${j.company}`, i === 0 ? 't-ok' : undefined],
+        ]),
+      'wp option get': ([key]) => {
+        if (key === 'hometown') return [[`${d.profile.roots}, Devbhoomi ⛰  Pailaag! (a Kumaoni Pahadi at heart)`]];
+        if (key === 'location') return [[d.profile.location]];
+        if (key === 'hobbies') return [[d.interests.join(', ')]];
+        return [[`Error: Could not get '${key ?? ''}' option. Try hometown, location or hobbies.`, 't-err']];
+      },
+      'wp cricket score': () => [
+        ['🏏  MANEESH  6+ (years) not out', 't-acc'],
+        ['   Strike rate: 1 deploy at a time, no ducks in production.'],
+        ['   Fielding: catches bugs at slip.', 't-dim'],
+      ],
+      'wp trek --summit': () => [
+        ['            /\\', 't-acc'],
+        ['       /\\  /  \\    /\\', 't-acc'],
+        ['      /  \\/    \\  /  \\', 't-acc'],
+        ['     /    \\     \\/    \\', 't-acc'],
+        ['  Summit reached. Next peak: your project?'],
+      ],
+      'wp gym --today': () => [['Leg day. No skipping. (Same rule for unit tests.)']],
+      open: ([page]) => {
+        const map: Record<string, string> = { cv: '/cv/', projects: '/projects/', contact: '/#contact', home: '/' };
+        const href = map[page ?? ''];
+        if (!href) return [[`Error: unknown page '${page ?? ''}'. Try cv, projects, contact or home.`, 't-err']];
+        navigate(href);
+        return [[`Redirecting to ${href} …`, 't-ok']];
+      },
+      theme: ([mode]) => {
+        if (mode !== 'dark' && mode !== 'light') return [['Usage: theme <dark|light>', 't-err']];
+        document.documentElement.dataset.theme = mode;
+        try {
+          localStorage.setItem('theme', mode);
+        } catch {}
+        return [[`Success: switched to ${mode} theme.`, 't-ok']];
+      },
+      'wp blueprint': () => {
+        (window as any).__toggleBlueprint?.();
+        return [['Blueprint mode toggled. Close the terminal to look around (B toggles it too).', 't-ok']];
+      },
+      sudo: () => [['Nice try. This incident will be reported to the site admin (that is me).', 't-err']],
+    };
+  }
+
+  function initTerminal() {
+    const dialog = document.querySelector<HTMLDialogElement>('[data-term]');
+    const out = document.querySelector<HTMLElement>('[data-term-out]');
+    const form = document.querySelector<HTMLFormElement>('[data-term-form]');
+    const input = document.querySelector<HTMLInputElement>('[data-term-in]');
+    const raw = document.getElementById('term-data')?.textContent;
+    if (!dialog || !out || !form || !input || !raw) return;
+
+    const cmds = commands(JSON.parse(raw));
+    const history: string[] = [];
+    let hIndex = 0;
+
+    const print = (lines: Line[]) => {
+      for (const [text, cls] of lines) {
+        const div = document.createElement('div');
+        div.textContent = text;
+        if (cls) div.className = cls;
+        out.append(div);
+      }
+      out.scrollTop = out.scrollHeight;
+    };
+    const greet = () =>
+      print([
+        ['WP-CLI 2.x · maneesh.dev', 't-acc'],
+        ['Type "help" to see what I can do. Tab completes, ↑ ↓ for history.', 't-dim'],
+        [''],
+      ]);
+
+    const run = (line: string) => {
+      print([[`$ ${line}`, 't-cmd']]);
+      const trimmed = line.trim().replace(/\s+/g, ' ');
+      if (!trimmed) return;
+      if (trimmed === 'clear') return void (out.innerHTML = '');
+      if (trimmed === 'exit') return dialog.close();
+      // Longest matching command name wins; the rest of the line becomes arguments.
+      const name = Object.keys(cmds)
+        .sort((a, b) => b.length - a.length)
+        .find((k) => trimmed === k || trimmed.startsWith(`${k} `));
+      if (!name) return print([[`Error: '${trimmed}' is not a registered wp command. See "help".`, 't-err']]);
+      const args = trimmed.slice(name.length).trim().split(' ').filter(Boolean);
+      print(cmds[name](args) ?? []);
+      print([['']]);
+    };
+
+    form.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const value = input.value;
+      if (value.trim()) history.push(value);
+      hIndex = history.length;
+      input.value = '';
+      run(value);
+    });
+    input.addEventListener('keydown', (e) => {
+      if (e.key === 'ArrowUp' && hIndex > 0) (e.preventDefault(), (input.value = history[--hIndex]));
+      if (e.key === 'ArrowDown') (e.preventDefault(), (input.value = history[++hIndex] ?? ''), (hIndex = Math.min(hIndex, history.length)));
+      if (e.key === 'Tab') {
+        e.preventDefault();
+        const match = [...Object.keys(cmds), 'clear', 'exit'].find((k) => k.startsWith(input.value) && input.value);
+        if (match) input.value = match;
+      }
+    });
+    document.querySelector('[data-term-close]')?.addEventListener('click', () => dialog.close());
+    dialog.addEventListener('click', (e) => e.target === dialog && dialog.close());
+
+    const open = () => {
+      if (dialog.open) return;
+      if (!out.childElementCount) greet();
+      dialog.showModal();
+      input.focus();
+    };
+    document.querySelectorAll('[data-term-open]').forEach((el) =>
+      el.addEventListener('click', (e) => {
+        e.preventDefault();
+        open();
+      }),
+    );
+
+    if (!(window as any).__termKeys) {
+      (window as any).__termKeys = true;
+      document.addEventListener('keydown', (e) => {
+        const typing = (e.target as HTMLElement).closest('input, textarea, [contenteditable]');
+        if ((e.key === '`' || e.key === '~') && !typing) {
+          e.preventDefault();
+          (window as any).__openTerm?.();
+        }
+      });
+    }
+    (window as any).__openTerm = open;
+  }
+  document.addEventListener('astro:page-load', initTerminal);
+</script>

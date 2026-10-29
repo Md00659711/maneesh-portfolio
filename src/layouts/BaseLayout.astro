@@ -1,0 +1,102 @@
+---
+import { ClientRouter } from 'astro:transitions';
+import SEO from '@/components/seo/SEO.astro';
+import Header from '@/components/layout/Header.astro';
+import Footer from '@/components/layout/Footer.astro';
+import CommandPalette from '@/components/layout/CommandPalette.astro';
+import Terminal from '@/components/layout/Terminal.astro';
+import Blueprint from '@/components/layout/Blueprint.astro';
+import Assistant from '@/components/layout/Assistant.astro';
+import { SITE } from '@/config/site';
+import type { Props as SEOProps } from '@/components/seo/SEO.astro';
+import '@/styles/global.css';
+
+type Props = SEOProps;
+
+const seo = Astro.props;
+---
+
+<!doctype html>
+<html lang={SITE.lang}>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="generator" content={Astro.generator} />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <meta name="theme-color" content="#0b0d12" />
+
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Space+Grotesk:wght@400;500;600;700&family=Tiro+Devanagari+Hindi&display=swap"
+    />
+
+    <SEO {...seo} />
+
+    <!-- Apply the saved theme before first paint, so there is no light/dark flash. -->
+    <script is:inline>
+      (function () {
+        const apply = () => {
+          let theme = null;
+          try { theme = localStorage.getItem('theme'); } catch (e) {}
+          if (!theme) theme = matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark';
+          document.documentElement.dataset.theme = theme;
+        };
+        apply();
+        document.addEventListener('astro:after-swap', apply);
+      })();
+    </script>
+
+    <!-- ClientRouter = SPA-style navigation between pages, while each page stays real, crawlable HTML. -->
+    <ClientRouter />
+  </head>
+  <body>
+    <a class="skip-link" href="#main">Skip to content</a>
+    <div class="grain" aria-hidden="true"></div>
+    <Header />
+    <main id="main">
+      <slot />
+    </main>
+    <Footer />
+    <CommandPalette />
+    <Terminal />
+    <Blueprint />
+    <Assistant />
+
+    <script>
+      // Reveal-on-scroll for any element with [data-reveal]. Runs again after every page navigation.
+      function initReveal() {
+        const els = document.querySelectorAll<HTMLElement>('[data-reveal]:not(.is-visible)');
+        if (!('IntersectionObserver' in window)) {
+          els.forEach((el) => el.classList.add('is-visible'));
+          return;
+        }
+        const io = new IntersectionObserver(
+          (entries) => {
+            for (const entry of entries) {
+              if (entry.isIntersecting) {
+                entry.target.classList.add('is-visible');
+                io.unobserve(entry.target);
+              }
+            }
+          },
+          { rootMargin: '0px 0px -10% 0px', threshold: 0.1 },
+        );
+        els.forEach((el) => io.observe(el));
+      }
+      document.addEventListener('astro:page-load', initReveal);
+
+      // GSAP is loaded only after the page is idle, so it never slows down the first paint.
+      document.addEventListener('astro:page-load', () => {
+        if (matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+        const start = () => import('@/scripts/motion').then((m) => m.initMotion());
+        if ('requestIdleCallback' in window) requestIdleCallback(start, { timeout: 1500 });
+        else setTimeout(start, 300);
+      });
+      document.addEventListener('astro:before-swap', () => {
+        import('@/scripts/motion').then((m) => m.destroyMotion());
+      });
+    </script>
+  </body>
+</html>

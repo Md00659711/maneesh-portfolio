@@ -1,0 +1,47 @@
+---
+import BaseLayout from '@/layouts/BaseLayout.astro';
+import Hero from '@/components/sections/Hero.astro';
+import About from '@/components/sections/About.astro';
+import Skills from '@/components/sections/Skills.astro';
+import Experience from '@/components/sections/Experience.astro';
+import Projects from '@/components/sections/Projects.astro';
+import Contact from '@/components/sections/Contact.astro';
+import OffTheClock from '@/components/sections/OffTheClock.astro';
+import QueryDemo from '@/components/sections/QueryDemo.astro';
+import Mindset from '@/components/sections/Mindset.astro';
+import BootIntro from '@/components/ui/BootIntro.astro';
+import { PROFILE } from '@/data/profile';
+import { SITE } from '@/config/site';
+import { SKILL_GROUPS } from '@/data/skills';
+import { EXPERIENCE } from '@/data/experience';
+
+// Structured data so Google understands this page is about a person.
+const personSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'Person',
+  name: PROFILE.name,
+  jobTitle: [PROFILE.role, PROFILE.speciality],
+  description: SITE.description,
+  email: `mailto:${PROFILE.email}`,
+  url: Astro.site?.href,
+  address: { '@type': 'PostalAddress', addressLocality: 'Noida', addressRegion: 'Uttar Pradesh', addressCountry: 'IN' },
+  worksFor: { '@type': 'Organization', name: EXPERIENCE[0].company },
+  knowsAbout: SKILL_GROUPS.flatMap((g) => g.items).slice(0, 25),
+  homeLocation: { '@type': 'Place', name: `${PROFILE.roots}, India` },
+  knowsLanguage: ['English', 'Hindi', 'Kumaoni'],
+  sameAs: [PROFILE.links.linkedin, PROFILE.links.github, PROFILE.links.wporg],
+};
+---
+
+<BaseLayout type="profile" jsonLd={personSchema}>
+  <BootIntro />
+  <Hero />
+  <About />
+  <Mindset />
+  <Skills />
+  <Experience />
+  <QueryDemo />
+  <Projects />
+  <OffTheClock />
+  <Contact />
+</BaseLayout>

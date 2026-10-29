@@ -1,0 +1,285 @@
+---
+import Block from '@/components/ui/Block.astro';
+import { MINDSET } from '@/data/profile';
+---
+
+<Block id="mindset" block="maneesh/wp-config" eyebrow="// how I engineer" title="My engineering mindset, <em>defined as constants.</em>">
+  <div class="mind" data-mind>
+    <div class="mind__file" data-reveal data-bp="wp-config.php · <ol>">
+      <div class="mind__bar mono">
+        <span class="mind__dots" aria-hidden="true"><i></i><i></i><i></i></span>
+        wp-config.php
+        <span class="mind__hint">click a line ↓</span>
+      </div>
+      <ol class="mind__code mono" role="tablist" aria-label="Engineering principles" aria-orientation="vertical">
+        <li class="mind__static" aria-hidden="true"><span class="c-tag">&lt;?php</span></li>
+        <li class="mind__static" aria-hidden="true"><span class="c-com">/** How Maneesh builds software. */</span></li>
+        {
+          MINDSET.map((m, i) => (
+            <li>
+              <button
+                type="button"
+                role="tab"
+                id={`mind-tab-${i}`}
+                class="mind__line"
+                aria-selected={i === 0 ? 'true' : 'false'}
+                aria-controls="mind-panel"
+                data-mind-tab={i}
+              >
+                <span class="c-fn">define</span>( <span class="c-str">'{m.name}'</span>, <span class="c-val">{m.value}</span> );
+              </button>
+            </li>
+          ))
+        }
+        <li class="mind__static" aria-hidden="true">
+          <span class="c-com">/* That's all, stop editing! Happy shipping. */</span>
+        </li>
+      </ol>
+    </div>
+
+    <div class="mind__panel" id="mind-panel" role="tabpanel" aria-live="polite" data-reveal style="--d:1">
+      {
+        MINDSET.map((m, i) => (
+          <article class="mind__item" data-mind-item={i} hidden={i !== 0}>
+            <p class="mind__num mono">
+              {String(i + 1).padStart(2, '0')} / {String(MINDSET.length).padStart(2, '0')}
+            </p>
+            <h3 class="mind__title">{m.title}</h3>
+            <p class="mind__text">{m.text}</p>
+            <p class="mind__const mono">{m.name}</p>
+          </article>
+        ))
+      }
+      <div class="mind__progress" aria-hidden="true"><span data-mind-progress></span></div>
+    </div>
+  </div>
+</Block>
+
+<style>
+  .mind {
+    display: grid;
+    grid-template-columns: 1.15fr 0.85fr;
+    gap: 20px;
+    align-items: stretch;
+  }
+  .mind__file {
+    border: 1px solid var(--line-strong);
+    border-radius: var(--radius-lg);
+    background: var(--bg-elev);
+    overflow: hidden;
+  }
+  .mind__bar {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 11px 16px;
+    border-bottom: 1px solid var(--line);
+    font-size: 12px;
+    color: var(--text-muted);
+  }
+  .mind__dots {
+    display: flex;
+    gap: 6px;
+  }
+  .mind__dots i {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: var(--line-strong);
+  }
+  .mind__hint {
+    margin-left: auto;
+    color: var(--text-faint);
+  }
+  .mind__code {
+    list-style: none;
+    padding: 14px 0;
+    margin: 0;
+    counter-reset: ln;
+    font-size: clamp(11.5px, 1.1vw, 13.5px);
+  }
+  .mind__code li {
+    counter-increment: ln;
+    display: flex;
+  }
+  .mind__code li::before {
+    content: counter(ln);
+    flex-shrink: 0;
+    width: 44px;
+    padding-right: 14px;
+    text-align: right;
+    color: var(--text-faint);
+    line-height: 2.1;
+  }
+  .mind__static {
+    line-height: 2.1;
+  }
+  .mind__line {
+    flex: 1;
+    min-width: 0;
+    padding: 0 14px 0 10px;
+    border: 0;
+    border-left: 2px solid transparent;
+    background: none;
+    color: var(--text);
+    font: inherit;
+    line-height: 2.1;
+    text-align: left;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    cursor: pointer;
+    transition: background-color 0.2s, border-color 0.2s;
+  }
+  .mind__line:hover {
+    background: var(--bg-elev-2);
+  }
+  .mind__line[aria-selected='true'] {
+    background: var(--accent-soft);
+    border-left-color: var(--accent);
+  }
+  .c-tag {
+    color: var(--hot);
+  }
+  .c-com {
+    color: var(--text-faint);
+  }
+  .c-fn {
+    color: var(--accent);
+  }
+  .c-str {
+    color: var(--ok);
+  }
+  .c-val {
+    color: var(--hot);
+  }
+
+  .mind__panel {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    min-height: 320px;
+    padding: clamp(24px, 4vw, 44px);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-lg);
+    background:
+      radial-gradient(circle at 100% 0%, var(--accent-soft), transparent 55%),
+      var(--bg-elev);
+    overflow: hidden;
+  }
+  .mind__item:not([hidden]) {
+    animation: mind-in 0.5s var(--ease-out);
+  }
+  .mind__num {
+    font-size: 12px;
+    color: var(--text-faint);
+  }
+  .mind__title {
+    margin-top: 14px;
+    font-size: clamp(26px, 3vw, 36px);
+  }
+  .mind__text {
+    margin-top: 14px;
+    color: var(--text-muted);
+    font-size: 17px;
+  }
+  .mind__const {
+    margin-top: 22px;
+    font-size: 12px;
+    color: var(--accent);
+  }
+  .mind__progress {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    height: 3px;
+    background: var(--line);
+  }
+  .mind__progress span {
+    display: block;
+    height: 100%;
+    width: 0;
+    background: var(--accent);
+  }
+  .mind__progress span.is-running {
+    animation: mind-progress 6s linear forwards;
+  }
+  @keyframes mind-in {
+    from {
+      opacity: 0;
+      transform: translateY(14px);
+      filter: blur(4px);
+    }
+  }
+  @keyframes mind-progress {
+    to {
+      width: 100%;
+    }
+  }
+
+  @media (max-width: 900px) {
+    .mind {
+      grid-template-columns: 1fr;
+    }
+    .mind__panel {
+      min-height: 0;
+    }
+    .mind__hint {
+      display: none;
+    }
+  }
+</style>
+
+<script>
+  let mindTimer: number | undefined;
+
+  function initMindset() {
+    window.clearInterval(mindTimer);
+    const root = document.querySelector<HTMLElement>('[data-mind]');
+    if (!root) return;
+    const tabs = [...root.querySelectorAll<HTMLButtonElement>('[data-mind-tab]')];
+    const items = [...root.querySelectorAll<HTMLElement>('[data-mind-item]')];
+    const bar = root.querySelector<HTMLElement>('[data-mind-progress]')!;
+    let current = 0;
+    let auto = !matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+    const show = (i: number) => {
+      current = (i + tabs.length) % tabs.length;
+      tabs.forEach((t, j) => t.setAttribute('aria-selected', String(j === current)));
+      items.forEach((it, j) => (it.hidden = j !== current));
+      // Restart the progress bar animation.
+      bar.classList.remove('is-running');
+      void bar.offsetWidth;
+      if (auto) bar.classList.add('is-running');
+    };
+
+    tabs.forEach((t, i) =>
+      t.addEventListener('click', () => {
+        auto = false; // the visitor took control: stop auto-advancing
+        window.clearInterval(mindTimer);
+        show(i);
+      }),
+    );
+    root.querySelector('[role="tablist"]')?.addEventListener('keydown', (e) => {
+      const key = (e as KeyboardEvent).key;
+      if (key !== 'ArrowDown' && key !== 'ArrowUp') return;
+      e.preventDefault();
+      const next = current + (key === 'ArrowDown' ? 1 : -1);
+      tabs[(next + tabs.length) % tabs.length].click();
+      tabs[current].focus();
+    });
+
+    // Auto-advance every 6s while the section is on screen.
+    const io = new IntersectionObserver(([entry]) => {
+      window.clearInterval(mindTimer);
+      if (entry.isIntersecting && auto) {
+        show(current);
+        mindTimer = window.setInterval(() => auto && show(current + 1), 6000);
+      }
+    });
+    io.observe(root);
+  }
+  document.addEventListener('astro:page-load', initMindset);
+</script>

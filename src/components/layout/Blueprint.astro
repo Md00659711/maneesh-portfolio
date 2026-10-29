@@ -1,0 +1,281 @@
+---
+// "Blueprint mode": press B (or the ⌗ button) to see how the page is engineered —
+// every component outlined and named with its size, a 12-column grid, and live
+// performance numbers measured in the visitor's own browser.
+---
+
+<div class="bp-grid" aria-hidden="true">
+  <div class="container bp-grid__cols">{Array.from({ length: 12 }, () => <span />)}</div>
+</div>
+
+<aside class="bp-hud mono" aria-label="Blueprint: live page metrics" data-bp-hud hidden>
+  <header class="bp-hud__head">
+    <span>⌗ BLUEPRINT</span>
+    <button type="button" data-blueprint-toggle aria-label="Close blueprint mode">esc</button>
+  </header>
+  <dl class="bp-hud__stats">
+    <div><dt>Initial load</dt><dd data-m="load">…</dd></div>
+    <div><dt>LCP</dt><dd data-m="lcp">…</dd></div>
+    <div><dt>CLS</dt><dd data-m="cls">…</dd></div>
+    <div><dt>Requests</dt><dd data-m="req">…</dd></div>
+    <div><dt>JavaScript</dt><dd data-m="js">…</dd></div>
+    <div><dt>DOM nodes</dt><dd data-m="dom">…</dd></div>
+    <div><dt>Viewport</dt><dd data-m="vp">…</dd></div>
+    <div><dt>FPS</dt><dd data-m="fps">…</dd></div>
+  </dl>
+  <p class="bp-hud__foot">Static HTML · Astro · no UI framework · measured live in your browser</p>
+</aside>
+
+<style>
+  .bp-grid {
+    display: none;
+    position: fixed;
+    inset: 0;
+    z-index: 40;
+    pointer-events: none;
+  }
+  .bp-grid__cols {
+    display: grid;
+    grid-template-columns: repeat(12, 1fr);
+    gap: 20px;
+    height: 100%;
+  }
+  .bp-grid__cols span {
+    background: rgb(76 194 255 / 0.06);
+    border-inline: 1px solid rgb(76 194 255 / 0.18);
+  }
+  :global(html[data-blueprint]) .bp-grid {
+    display: block;
+    animation: bp-fade 0.4s ease-out;
+  }
+
+  .bp-hud {
+    position: fixed;
+    left: 16px;
+    bottom: 16px;
+    z-index: 70;
+    width: 270px;
+    border: 1px solid rgb(76 194 255 / 0.5);
+    border-radius: 12px;
+    background: rgb(6 22 40 / 0.92);
+    backdrop-filter: blur(8px);
+    color: #bfe6ff;
+    font-size: 11.5px;
+    box-shadow: 0 20px 50px -20px rgb(0 0 0 / 0.6);
+    animation: bp-hud-in 0.45s var(--ease-out);
+  }
+  .bp-hud[hidden] {
+    display: none;
+  }
+  .bp-hud__head {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 9px 12px;
+    border-bottom: 1px solid rgb(76 194 255 / 0.3);
+    color: #4cc2ff;
+    letter-spacing: 0.1em;
+  }
+  .bp-hud__head button {
+    padding: 1px 7px;
+    border: 1px solid rgb(76 194 255 / 0.5);
+    border-radius: 5px;
+    background: none;
+    color: #4cc2ff;
+    font: inherit;
+    cursor: pointer;
+  }
+  .bp-hud__stats {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    margin: 0;
+  }
+  .bp-hud__stats div {
+    padding: 8px 12px;
+    border-bottom: 1px solid rgb(76 194 255 / 0.15);
+  }
+  .bp-hud__stats div:nth-child(odd) {
+    border-right: 1px solid rgb(76 194 255 / 0.15);
+  }
+  .bp-hud__stats dt {
+    font-size: 10px;
+    color: #6aa8cf;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+  }
+  .bp-hud__stats dd {
+    margin: 2px 0 0;
+    font-size: 15px;
+    color: #fff;
+  }
+  .bp-hud__foot {
+    padding: 8px 12px;
+    font-size: 10px;
+    color: #6aa8cf;
+  }
+
+  /* Page treatment while blueprint mode is on. */
+  :global(html[data-blueprint] body) {
+    background-image:
+      linear-gradient(rgb(76 194 255 / 0.07) 1px, transparent 1px),
+      linear-gradient(90deg, rgb(76 194 255 / 0.07) 1px, transparent 1px);
+    background-size: 24px 24px;
+  }
+  :global(html[data-blueprint] [data-bp]) {
+    outline: 1px dashed rgb(76 194 255 / 0.75);
+    outline-offset: -1px;
+  }
+  :global(.bp-tag) {
+    position: absolute;
+    top: 0;
+    left: 0;
+    z-index: 30;
+    padding: 2px 7px;
+    border-bottom-right-radius: 6px;
+    background: #4cc2ff;
+    color: #04121f;
+    font: 600 10.5px/1.5 var(--font-mono);
+    white-space: nowrap;
+    pointer-events: none;
+    animation: bp-fade 0.35s ease-out both;
+    animation-delay: calc(var(--n, 0) * 25ms);
+  }
+  @keyframes bp-fade {
+    from {
+      opacity: 0;
+    }
+  }
+  @keyframes bp-hud-in {
+    from {
+      opacity: 0;
+      transform: translateY(20px);
+    }
+  }
+  @media (max-width: 600px) {
+    .bp-hud {
+      left: 8px;
+      right: 8px;
+      bottom: 8px;
+      width: auto;
+    }
+    .bp-hud__stats {
+      grid-template-columns: repeat(4, 1fr);
+    }
+    .bp-hud__stats div:nth-child(odd) {
+      border-right: 0;
+    }
+    .bp-hud__foot {
+      display: none;
+    }
+  }
+</style>
+
+<script>
+  const root = document.documentElement;
+  let on = false;
+  let fpsFrame = 0;
+  let lcp = 0;
+  let cls = 0;
+
+  // Collect Core Web Vitals from the start of the page (buffered), so the numbers are real.
+  try {
+    new PerformanceObserver((list) => {
+      const last = list.getEntries().at(-1);
+      if (last) lcp = last.startTime;
+    }).observe({ type: 'largest-contentful-paint', buffered: true });
+    new PerformanceObserver((list) => {
+      for (const e of list.getEntries() as any[]) if (!e.hadRecentInput) cls += e.value;
+    }).observe({ type: 'layout-shift', buffered: true });
+  } catch {}
+
+  const set = (key: string, value: string) => {
+    const el = document.querySelector(`[data-m="${key}"]`);
+    if (el) el.textContent = value;
+  };
+  const kb = (bytes: number) => `${(bytes / 1024).toFixed(1)} KB`;
+
+  function measure() {
+    const nav = performance.getEntriesByType('navigation')[0] as PerformanceNavigationTiming | undefined;
+    const res = performance.getEntriesByType('resource') as PerformanceResourceTiming[];
+    const js = res.filter((r) => r.initiatorType === 'script' || r.name.endsWith('.js'));
+    set('load', nav && nav.loadEventEnd ? `${Math.round(nav.loadEventEnd)} ms` : 'n/a');
+    set('lcp', lcp ? `${(lcp / 1000).toFixed(2)} s` : 'n/a');
+    set('cls', cls.toFixed(3));
+    set('req', String(res.length + 1));
+    set('js', kb(js.reduce((n, r) => n + (r.encodedBodySize || r.transferSize || 0), 0)));
+    set('dom', String(document.getElementsByTagName('*').length));
+    set('vp', `${innerWidth}×${innerHeight}`);
+  }
+
+  function fps() {
+    let frames = 0;
+    let last = performance.now();
+    const tick = (now: number) => {
+      if (!on) return;
+      frames++;
+      if (now - last >= 1000) {
+        set('fps', String(Math.round((frames * 1000) / (now - last))));
+        frames = 0;
+        last = now;
+        measure();
+      }
+      fpsFrame = requestAnimationFrame(tick);
+    };
+    fpsFrame = requestAnimationFrame(tick);
+  }
+
+  function addTags() {
+    document.querySelectorAll<HTMLElement>('[data-bp]').forEach((el, n) => {
+      if (getComputedStyle(el).position === 'static') {
+        el.style.position = 'relative';
+        el.dataset.bpPos = '1';
+      }
+      const tag = document.createElement('span');
+      tag.className = 'bp-tag';
+      tag.style.setProperty('--n', String(n));
+      tag.textContent = `${el.dataset.bp} · ${Math.round(el.offsetWidth)}×${Math.round(el.offsetHeight)}`;
+      el.append(tag);
+    });
+  }
+  function removeTags() {
+    document.querySelectorAll('.bp-tag').forEach((t) => t.remove());
+    document.querySelectorAll<HTMLElement>('[data-bp-pos]').forEach((el) => {
+      el.style.position = '';
+      delete el.dataset.bpPos;
+    });
+  }
+
+  function apply(state: boolean) {
+    on = state;
+    const hud = document.querySelector<HTMLElement>('[data-bp-hud]');
+    cancelAnimationFrame(fpsFrame);
+    removeTags();
+    if (on) {
+      root.dataset.blueprint = '';
+      addTags();
+      measure();
+      fps();
+    } else {
+      delete root.dataset.blueprint;
+    }
+    if (hud) hud.hidden = !on;
+    document.querySelectorAll('[data-blueprint-toggle]').forEach((b) => b.setAttribute('aria-pressed', String(on)));
+  }
+  const toggle = () => apply(!on);
+
+  document.addEventListener('click', (e) => {
+    if ((e.target as HTMLElement).closest('[data-blueprint-toggle]')) {
+      e.preventDefault();
+      toggle();
+    }
+  });
+  document.addEventListener('keydown', (e) => {
+    const typing = (e.target as HTMLElement).closest('input, textarea, [contenteditable]');
+    if (typing || e.metaKey || e.ctrlKey || e.altKey || document.querySelector('dialog[open]')) return;
+    if (e.key.toLowerCase() === 'b') toggle();
+    if (e.key === 'Escape' && on) apply(false);
+  });
+  // Keep the mode on across page navigations (the new page needs fresh tags).
+  document.addEventListener('astro:after-swap', () => on && apply(true));
+  (window as any).__toggleBlueprint = toggle;
+</script>
