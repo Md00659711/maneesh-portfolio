@@ -1,6 +1,8 @@
 export const PROFILE = {
   name: 'Maneesh Singh Dhanik',
   firstName: 'Maneesh',
+  // Other spellings people search for. Used in structured data, the footer and llms.txt.
+  alternateNames: ['Manish Dhanik', 'Maneesh Dhanik', 'Manish Singh Dhanik', 'Manish', 'Maneesh', 'Dhanik'],
   role: 'Software Engineer',
   speciality: 'WordPress Developer',
   tagline: 'WordPress · PHP · React · AI-assisted engineering',
@@ -137,6 +139,7 @@ export const FREELANCE = {
   ],
   // Free extras, chosen from what the top-ranking agencies and freelancers offer.
   offers: [
+    { icon: '💬', title: 'Free consultation', text: 'Tell me about your WordPress project or problem and get honest advice on the best way to solve it. No obligation.' },
     { icon: '⚡', title: 'Free speed & health check', text: 'Run the free WordPress speed test, or send me your link and I will review the site and list what to fix.' },
     { icon: '📝', title: 'Free written estimate', text: 'A clear scope, price and timeline before any work starts. No call needed, no obligation.' },
     { icon: '🛟', title: '7 days of free support', text: 'After every fix or launch, I fix anything related that comes up in the next 7 days at no cost.' },

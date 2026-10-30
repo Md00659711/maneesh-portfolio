@@ -1,9 +1,20 @@
 ---
 import { NAV, SITE } from '@/config/site';
+import { PROFILE } from '@/data/profile';
+
+const consultHref = `mailto:${PROFILE.email}?subject=${encodeURIComponent('Free consultation')}`;
 ---
 
 <header class="header" data-header data-bp="Header.astro">
   <span class="progress" aria-hidden="true" data-progress></span>
+  <!-- Top promo strip: folds away once the page is scrolled, so it never covers content. -->
+  <div class="promo">
+    <p class="container promo__inner">
+      <span class="promo__text"><span aria-hidden="true">💬</span> <strong>Free consultation</strong> for your WordPress project. No obligation.</span>
+      <a href={consultHref} class="promo__link">Book free consultation →</a>
+      <a href="/hire/" class="promo__link promo__link--hire">Hire me</a>
+    </p>
+  </div>
   <div class="container header__inner">
     <a href="/" class="logo" aria-label={`${SITE.name}, home`}>
       <span class="logo__mark" aria-hidden="true">M<span>/</span></span>
@@ -55,6 +66,45 @@ import { NAV, SITE } from '@/config/site';
     padding-block: 14px;
     transition: background-color 0.3s, border-color 0.3s, padding 0.3s var(--ease-out);
     border-bottom: 1px solid transparent;
+  }
+  .promo {
+    margin: -14px 0 12px;
+    max-height: 40px;
+    overflow: hidden;
+    background: var(--grad-btn);
+    color: #fff;
+    font-size: 13.5px;
+    transition: max-height 0.3s var(--ease-out), margin 0.3s var(--ease-out);
+  }
+  .promo__inner {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px 18px;
+    min-height: 36px;
+    flex-wrap: wrap;
+  }
+  .promo__link {
+    color: #fff;
+    font-weight: 600;
+    text-decoration: underline;
+    text-underline-offset: 3px;
+    white-space: nowrap;
+  }
+  .promo__link--hire {
+    padding: 2px 12px;
+    border-radius: 999px;
+    background: rgb(255 255 255 / 0.2);
+    text-decoration: none;
+  }
+  .header.is-scrolled .promo {
+    max-height: 0;
+    margin-block: -10px 0;
+  }
+  @media (max-width: 640px) {
+    .promo__text {
+      display: none;
+    }
   }
   .header.is-scrolled {
     padding-block: 10px;
@@ -305,6 +355,9 @@ import { NAV, SITE } from '@/config/site';
       transform: translateY(-10px) scale(0.98);
       transform-origin: top right;
       transition: opacity 0.25s, transform 0.35s var(--ease-out), visibility 0.25s;
+    }
+    .header:not(.is-scrolled) .nav__list {
+      top: 116px;
     }
     .nav__list.is-open {
       opacity: 1;

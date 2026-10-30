@@ -2,9 +2,9 @@
 export const SITE = {
   name: 'Maneesh Singh Dhanik',
   shortName: 'Maneesh',
-  title: 'Maneesh Singh Dhanik — Freelance WordPress Developer & Software Engineer',
+  title: 'Maneesh Singh Dhanik (Manish Dhanik) — Freelance WordPress Developer',
   description:
-    'Freelance WordPress developer for US, UK, Australian and NZ businesses. 100+ sites, 6+ years, from $10/hour: themes, plugins, WooCommerce, speed and bug fixes.',
+    'Maneesh (Manish) Dhanik, freelance WordPress developer for US, UK, Australian and NZ businesses. 100+ sites, 6+ years, from $10/hour. Free consultation.',
   locale: 'en_GB',
   lang: 'en',
   twitterHandle: '',

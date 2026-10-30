@@ -21,6 +21,7 @@ const personSchema = {
   '@context': 'https://schema.org',
   '@type': 'Person',
   name: PROFILE.name,
+  alternateName: PROFILE.alternateNames,
   jobTitle: [PROFILE.role, PROFILE.speciality],
   description: SITE.description,
   email: `mailto:${PROFILE.email}`,
@@ -46,7 +47,7 @@ const siteSchema = {
   url: Astro.site?.href,
   description: SITE.description,
   inLanguage: 'en',
-  author: { '@type': 'Person', name: PROFILE.name },
+  author: { '@type': 'Person', name: PROFILE.name, alternateName: PROFILE.alternateNames },
 };
 ---
 

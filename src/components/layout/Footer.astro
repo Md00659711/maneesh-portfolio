@@ -8,6 +8,7 @@ const year = new Date().getFullYear();
     <p class="mono footer__code">
       <span class="c-fn">wp_footer</span>(); <span class="c-comment">// © {year} {PROFILE.name}</span>
     </p>
+    <p class="footer__aka">Also known as {PROFILE.alternateNames.slice(0, 3).join(', ')}. Freelance WordPress developer.</p>
     <ul class="footer__links">
       <li><a href="/hire/">Hire me</a></li>
       <li><a href="/free-wordpress-speed-test/">Free speed test</a></li>
@@ -38,6 +39,12 @@ const year = new Date().getFullYear();
   .footer__code {
     font-size: 13.5px;
     color: var(--text-muted);
+  }
+  .footer__aka {
+    flex-basis: 100%;
+    order: 3;
+    font-size: 13px;
+    color: var(--text-faint);
   }
   .c-fn {
     color: var(--accent);

@@ -14,6 +14,7 @@ export const GET: APIRoute = async ({ site }) => {
 
 > ${PROFILE.name} is a freelance WordPress developer and software engineer based in ${PROFILE.location}, with ${STATS[0].value}+ years of experience and ${FREELANCE.delivered}+ websites delivered. Maneesh builds custom WordPress themes, plugins, Gutenberg blocks in React, WooCommerce stores, Multisite networks and multilingual sites, and fixes WordPress bugs and performance problems.
 
+- Also known as: ${PROFILE.alternateNames.join(', ')}
 - Current role: ${EXPERIENCE[0].role} at ${EXPERIENCE[0].company}
 - Available for: freelance WordPress projects, WordPress bug fixing and ongoing support
 - Clients: mainly businesses in ${FREELANCE.markets.map((m) => m.country).join(', ')}

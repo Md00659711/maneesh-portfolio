@@ -25,6 +25,7 @@ const serviceSchema = {
   provider: {
     '@type': 'Person',
     name: PROFILE.name,
+    alternateName: PROFILE.alternateNames,
     jobTitle: 'Freelance WordPress Developer',
     email: `mailto:${PROFILE.email}`,
     url: Astro.site?.href,
@@ -76,6 +77,7 @@ const proof = [
         </p>
         <ul class="hero__chips mono" aria-label="At a glance">
           <li class="hero__price"><strong>${FREELANCE.rate}</strong>/hour (USD)</li>
+          <li>✓ Free consultation</li>
           <li>✓ Free estimate</li>
           <li>✓ 7 days free support</li>
           <li class="hero__flags" aria-label={`Clients in ${FREELANCE.markets.map((m) => m.country).join(', ')}`}>
@@ -83,7 +85,8 @@ const proof = [
           </li>
         </ul>
         <div class="hero__cta">
-          <a href={mail('Freelance WordPress project')} class="btn btn--primary" data-magnetic>Start a project →</a>
+          <a href={mail('Free consultation')} class="btn btn--primary" data-magnetic>💬 Book a free consultation</a>
+          <a href={mail('Freelance WordPress project')} class="btn" data-magnetic>Start a project →</a>
           <a href="/free-wordpress-speed-test/" class="btn" data-magnetic>⚡ Free speed test</a>
           <a href={mail('WordPress bug fix')} class="btn" data-magnetic>🐞 Fix a bug</a>
         </div>
