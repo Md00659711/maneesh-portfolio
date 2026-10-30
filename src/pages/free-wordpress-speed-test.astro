@@ -1,0 +1,619 @@
+---
+// Free WordPress speed test: runs Google PageSpeed Insights in the visitor's browser and turns the
+// results into plain-English problems, with a "get it fixed" call to action. A lead magnet and a search landing page.
+// Set PUBLIC_PSI_KEY (a free Google API key) in Vercel for a higher request quota; it works without one too.
+import BaseLayout from '@/layouts/BaseLayout.astro';
+import Breadcrumbs from '@/components/ui/Breadcrumbs.astro';
+import { PROFILE, FREELANCE } from '@/data/profile';
+
+const faq = [
+  {
+    q: 'How does this WordPress speed test work?',
+    a: "It runs Google PageSpeed Insights (Lighthouse) on your page and reads Google's real-user Core Web Vitals data from Chrome users, the same data Google uses for rankings.",
+  },
+  {
+    q: 'What are good Core Web Vitals scores?',
+    a: 'Google rates a page as good when Largest Contentful Paint (LCP) is 2.5 seconds or less, Interaction to Next Paint (INP) is 200 ms or less, and Cumulative Layout Shift (CLS) is 0.1 or less, for at least 75% of visits.',
+  },
+  {
+    q: 'Why is my WordPress site slow?',
+    a: 'The most common causes are heavy themes and page builders, too many plugins loading scripts on every page, unoptimised images, no page or object caching, slow database queries and cheap shared hosting.',
+  },
+  {
+    q: 'Can you fix the problems this test finds?',
+    a: `Yes. Speed optimisation is one of my main services. Send me the results and I will reply with a free written estimate. I charge $${FREELANCE.rate}/hour and include 7 days of free support after the fix.`,
+  },
+];
+
+const schema = [
+  {
+    '@context': 'https://schema.org',
+    '@type': 'WebApplication',
+    name: 'Free WordPress Speed Test',
+    url: new URL('/free-wordpress-speed-test/', Astro.site).href,
+    applicationCategory: 'DeveloperApplication',
+    operatingSystem: 'Any',
+    offers: { '@type': 'Offer', price: '0', priceCurrency: 'USD' },
+    author: { '@type': 'Person', name: PROFILE.name, url: Astro.site?.href },
+  },
+  {
+    '@context': 'https://schema.org',
+    '@type': 'FAQPage',
+    mainEntity: faq.map((f) => ({ '@type': 'Question', name: f.q, acceptedAnswer: { '@type': 'Answer', text: f.a } })),
+  },
+];
+---
+
+<BaseLayout
+  title="Free WordPress Speed Test — Check Core Web Vitals"
+  description="Free WordPress speed test: check your site's Core Web Vitals (LCP, INP, CLS) and performance score, see what slows it down in plain English, and get it fixed."
+  jsonLd={schema}
+>
+  <section class="section page">
+    <div class="container">
+      <Breadcrumbs items={[{ label: 'Free WordPress speed test', href: '/free-wordpress-speed-test/' }]} />
+
+      <header class="head" data-reveal>
+        <p class="head__eyebrow mono">// free tool · no sign-up</p>
+        <h1 class="head__title">Free WordPress <span>speed test</span></h1>
+        <p class="head__lead">
+          Check your site's Core Web Vitals and performance score with Google's own data, then see what is slowing it down
+          in plain English.
+        </p>
+      </header>
+
+      <form class="tester" data-speed-form data-reveal>
+        <label class="tester__label mono" for="speed-url">Your website URL</label>
+        <div class="tester__row">
+          <input id="speed-url" name="url" type="text" inputmode="url" autocomplete="url" placeholder="yourwebsite.com" required />
+          <div class="tester__device" role="radiogroup" aria-label="Device">
+            <label><input type="radio" name="strategy" value="mobile" checked /> <span>📱 Mobile</span></label>
+            <label><input type="radio" name="strategy" value="desktop" /> <span>🖥 Desktop</span></label>
+          </div>
+          <button type="submit" class="btn btn--primary" data-magnetic>Run speed test →</button>
+        </div>
+      </form>
+
+      <div class="status mono" data-speed-status hidden aria-live="polite">
+        <p data-speed-step>Starting Lighthouse…</p>
+        <div class="status__bar"><span></span></div>
+      </div>
+
+      <div class="report" data-speed-report hidden aria-live="polite">
+        <div class="report__head">
+          <p class="report__url mono" data-r-url></p>
+          <p class="report__device mono" data-r-device></p>
+        </div>
+
+        <div class="scores" data-r-scores></div>
+
+        <h2 class="report__title">Core Web Vitals <small class="mono">real Chrome users, last 28 days</small></h2>
+        <div class="vitals" data-r-vitals></div>
+
+        <h2 class="report__title">What is slowing it down</h2>
+        <ol class="issues" data-r-issues></ol>
+
+        <div class="fix">
+          <div>
+            <p class="fix__eyebrow mono"><span class="live-dot"></span> Available to fix this</p>
+            <h2 class="fix__title">Want these problems fixed?</h2>
+            <p class="fix__text">
+              Send me this report and I'll reply with a free written estimate. ${FREELANCE.rate}/hour, with 7 days of free
+              support after the fix.
+            </p>
+          </div>
+          <a class="btn btn--primary" data-r-cta href={`mailto:${PROFILE.email}`}>Get it fixed →</a>
+        </div>
+      </div>
+
+      <p class="error" data-speed-error hidden role="alert"></p>
+
+      <section class="info" aria-labelledby="speed-faq">
+        <h2 class="info__title" id="speed-faq">WordPress speed test FAQ</h2>
+        <div class="info__grid">
+          {
+            faq.map((f) => (
+              <div class="info__item" data-reveal>
+                <h3>{f.q}</h3>
+                <p>{f.a}</p>
+              </div>
+            ))
+          }
+        </div>
+        <p class="info__more">
+          Need more than a test? <a href="/hire/">Hire a freelance WordPress developer →</a>
+        </p>
+      </section>
+    </div>
+  </section>
+</BaseLayout>
+
+<style>
+  .page {
+    padding-top: 140px;
+  }
+  .head {
+    max-width: 780px;
+    margin-block: 24px 40px;
+  }
+  .head__eyebrow {
+    font-size: 13px;
+    color: var(--accent);
+  }
+  .head__title {
+    margin-top: 14px;
+    font-size: clamp(40px, 7vw, 80px);
+  }
+  .head__title span {
+    background: var(--grad-text);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+  .head__lead {
+    margin-top: 18px;
+    font-size: clamp(17px, 1.7vw, 20px);
+    color: var(--text-muted);
+  }
+
+  .tester {
+    padding: clamp(18px, 3vw, 28px);
+    border: 1px solid var(--line-strong);
+    border-radius: var(--radius-lg);
+    background: var(--surface);
+    box-shadow: var(--shadow);
+  }
+  .tester__label {
+    display: block;
+    margin-bottom: 10px;
+    font-size: 12px;
+    color: var(--text-faint);
+  }
+  .tester__row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+  .tester input[type='text'] {
+    flex: 1 1 260px;
+    min-width: 0;
+    height: 52px;
+    padding: 0 18px;
+    border: 1px solid var(--line-strong);
+    border-radius: 999px;
+    background: var(--bg);
+    color: var(--text);
+    font: inherit;
+    font-size: 17px;
+  }
+  .tester input[type='text']:focus {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+  }
+  .tester__device {
+    display: flex;
+    padding: 4px;
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    background: var(--bg);
+  }
+  .tester__device label {
+    position: relative;
+    cursor: pointer;
+  }
+  .tester__device input {
+    position: absolute;
+    opacity: 0;
+  }
+  .tester__device span {
+    display: grid;
+    place-items: center;
+    height: 42px;
+    padding: 0 16px;
+    border-radius: 999px;
+    font-size: 14.5px;
+    color: var(--text-muted);
+    transition: background-color 0.2s, color 0.2s;
+  }
+  .tester__device input:checked + span {
+    background: var(--accent-soft);
+    color: var(--text);
+  }
+  .tester__device input:focus-visible + span {
+    outline: 2px solid var(--accent);
+  }
+  .tester .btn {
+    height: 52px;
+  }
+
+  .status {
+    margin-top: 28px;
+    font-size: 13.5px;
+    color: var(--text-muted);
+  }
+  .status__bar {
+    height: 3px;
+    margin-top: 12px;
+    border-radius: 3px;
+    background: var(--line);
+    overflow: hidden;
+  }
+  .status__bar span {
+    display: block;
+    width: 35%;
+    height: 100%;
+    background: var(--grad-btn);
+    animation: speed-load 1.4s ease-in-out infinite;
+  }
+  @keyframes speed-load {
+    from {
+      transform: translateX(-100%);
+    }
+    to {
+      transform: translateX(300%);
+    }
+  }
+
+  .error {
+    margin-top: 24px;
+    padding: 16px 20px;
+    border: 1px solid color-mix(in srgb, #ff7a85 45%, var(--line));
+    border-radius: var(--radius);
+    background: color-mix(in srgb, #ff7a85 8%, transparent);
+  }
+
+  .report {
+    margin-top: 32px;
+  }
+  .report__head {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    gap: 8px;
+    font-size: 13px;
+    color: var(--text-faint);
+  }
+  .report__url {
+    overflow-wrap: anywhere;
+  }
+  .scores {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 150px), 1fr));
+    gap: 14px;
+    margin-top: 16px;
+  }
+  .scores :global(.score) {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+    padding: 22px 12px;
+    border: 1px solid var(--line);
+    border-radius: var(--radius-lg);
+    background: var(--surface);
+    text-align: center;
+  }
+  .scores :global(.ring) {
+    --c: var(--ok);
+    display: grid;
+    place-items: center;
+    width: 92px;
+    aspect-ratio: 1;
+    border-radius: 50%;
+    background: conic-gradient(var(--c) calc(var(--v) * 1%), var(--line) 0);
+    mask: radial-gradient(farthest-side, transparent calc(100% - 9px), #000 calc(100% - 8px));
+  }
+  .scores :global(.ring__wrap) {
+    position: relative;
+    display: grid;
+    place-items: center;
+  }
+  .scores :global(.ring__num) {
+    position: absolute;
+    font-size: 28px;
+    font-weight: 600;
+  }
+  .scores :global(.score__label) {
+    font-size: 14px;
+    color: var(--text-muted);
+  }
+  :global(.is-good) {
+    --c: var(--ok) !important;
+  }
+  :global(.is-avg) {
+    --c: var(--hot) !important;
+  }
+  :global(.is-poor) {
+    --c: #ff5c6c !important;
+  }
+
+  .report__title {
+    margin-top: 44px;
+    font-size: clamp(24px, 3vw, 32px);
+  }
+  .report__title small {
+    display: block;
+    margin-top: 6px;
+    font-size: 12px;
+    font-weight: 400;
+    color: var(--text-faint);
+  }
+  .vitals {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 220px), 1fr));
+    gap: 14px;
+    margin-top: 18px;
+  }
+  .vitals :global(.vital) {
+    padding: 20px;
+    border: 1px solid var(--line);
+    border-left: 3px solid var(--c, var(--line));
+    border-radius: var(--radius);
+    background: var(--bg-elev);
+  }
+  .vitals :global(.vital__name) {
+    font-size: 12px;
+    color: var(--text-faint);
+  }
+  .vitals :global(.vital__value) {
+    margin-top: 6px;
+    font-size: 30px;
+    font-weight: 600;
+    color: var(--c, var(--text));
+  }
+  .vitals :global(.vital__verdict) {
+    font-size: 13.5px;
+    color: var(--text-muted);
+  }
+  .vitals :global(.vital--empty) {
+    grid-column: 1 / -1;
+    color: var(--text-muted);
+  }
+
+  .issues {
+    display: grid;
+    gap: 10px;
+    margin-top: 18px;
+    padding: 0;
+    list-style: none;
+  }
+  .issues :global(li) {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    gap: 6px 18px;
+    padding: 16px 20px;
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    background: var(--bg-elev);
+  }
+  .issues :global(.issue__save) {
+    font-size: 13px;
+    color: var(--hot);
+    white-space: nowrap;
+  }
+
+  .fix {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 24px;
+    margin-top: 44px;
+    padding: clamp(24px, 4vw, 40px);
+    border: 1px solid #343947;
+    border-radius: calc(var(--radius-lg) + 4px);
+    background: var(--grad-ink);
+    color: #eef0f5;
+  }
+  .fix__eyebrow {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 12.5px;
+    color: #3ddc97;
+  }
+  .fix__title {
+    margin-top: 10px;
+    font-size: clamp(24px, 3vw, 34px);
+  }
+  .fix__text {
+    margin-top: 8px;
+    max-width: 560px;
+    color: #a1a8b8;
+  }
+
+  .info {
+    margin-top: clamp(64px, 9vw, 110px);
+  }
+  .info__title {
+    font-size: clamp(28px, 4vw, 44px);
+  }
+  .info__grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 300px), 1fr));
+    gap: 16px;
+    margin-top: 24px;
+  }
+  .info__item {
+    padding: 22px;
+    border: 1px solid var(--line);
+    border-radius: var(--radius-lg);
+    background: var(--bg-elev);
+  }
+  .info__item h3 {
+    font-size: 18px;
+    line-height: 1.3;
+  }
+  .info__item p {
+    margin-top: 8px;
+    font-size: 15.5px;
+    color: var(--text-muted);
+  }
+  .info__more {
+    margin-top: 24px;
+    color: var(--text-muted);
+  }
+  .info__more a {
+    color: var(--accent);
+  }
+</style>
+
+<script>
+  import { PROFILE, FREELANCE } from '@/data/profile';
+
+  const API = 'https://www.googleapis.com/pagespeedonline/v5/runPagespeed';
+  const CATEGORIES = [
+    ['performance', 'Performance'],
+    ['accessibility', 'Accessibility'],
+    ['best-practices', 'Best practices'],
+    ['seo', 'SEO'],
+  ] as const;
+  // Google's "good" / "needs improvement" thresholds for each field metric.
+  const VITALS = [
+    { key: 'LARGEST_CONTENTFUL_PAINT_MS', name: 'LCP · loading', fmt: (v: number) => `${(v / 1000).toFixed(1)} s` },
+    { key: 'INTERACTION_TO_NEXT_PAINT', name: 'INP · responsiveness', fmt: (v: number) => `${Math.round(v)} ms` },
+    { key: 'CUMULATIVE_LAYOUT_SHIFT_SCORE', name: 'CLS · visual stability', fmt: (v: number) => (v / 100).toFixed(2) },
+    { key: 'EXPERIMENTAL_TIME_TO_FIRST_BYTE', name: 'TTFB · server response', fmt: (v: number) => `${(v / 1000).toFixed(1)} s` },
+  ];
+  const VERDICT: Record<string, [string, string]> = {
+    FAST: ['is-good', 'Good'],
+    AVERAGE: ['is-avg', 'Needs improvement'],
+    SLOW: ['is-poor', 'Poor'],
+  };
+  const STEPS = ['Starting Lighthouse…', 'Loading your page on a test phone…', 'Measuring Core Web Vitals…', 'Checking scripts, images and caching…', 'Writing your report…'];
+
+  const el = <T extends HTMLElement>(tag: string, cls?: string, text?: string) => {
+    const node = document.createElement(tag) as T;
+    if (cls) node.className = cls;
+    if (text) node.textContent = text;
+    return node;
+  };
+  const band = (score: number) => (score >= 90 ? 'is-good' : score >= 50 ? 'is-avg' : 'is-poor');
+  const normalise = (raw: string) => {
+    const value = raw.trim();
+    const url = new URL(/^https?:\/\//i.test(value) ? value : `https://${value}`);
+    if (!url.hostname.includes('.')) throw new Error('bad host');
+    return url.href;
+  };
+
+  function initSpeedTest() {
+    const form = document.querySelector<HTMLFormElement>('[data-speed-form]');
+    if (!form) return;
+    const status = document.querySelector<HTMLElement>('[data-speed-status]')!;
+    const step = document.querySelector<HTMLElement>('[data-speed-step]')!;
+    const report = document.querySelector<HTMLElement>('[data-speed-report]')!;
+    const error = document.querySelector<HTMLElement>('[data-speed-error]')!;
+    const button = form.querySelector<HTMLButtonElement>('button[type="submit"]')!;
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const data = new FormData(form);
+      const strategy = String(data.get('strategy') ?? 'mobile');
+      let target: string;
+      try {
+        target = normalise(String(data.get('url') ?? ''));
+      } catch {
+        error.textContent = 'Please enter a full website address, for example yourwebsite.com.';
+        error.hidden = false;
+        return;
+      }
+
+      error.hidden = true;
+      report.hidden = true;
+      status.hidden = false;
+      button.disabled = true;
+      let i = 0;
+      step.textContent = STEPS[0];
+      const ticker = window.setInterval(() => (step.textContent = STEPS[Math.min(++i, STEPS.length - 1)]), 5000);
+
+      const params = new URLSearchParams({ url: target, strategy });
+      CATEGORIES.forEach(([c]) => params.append('category', c));
+      const key = import.meta.env.PUBLIC_PSI_KEY;
+      if (key) params.set('key', key);
+
+      try {
+        const res = await fetch(`${API}?${params}`);
+        const json = await res.json();
+        if (!res.ok) throw new Error(json?.error?.message ?? `HTTP ${res.status}`);
+        render(json, target, strategy);
+      } catch (err) {
+        const msg = String((err as Error).message);
+        error.textContent = /quota|429|rate/i.test(msg)
+          ? `Google's free test is busy right now. Try again in a minute, or email ${PROFILE.email} and I'll check your site by hand for free.`
+          : `Google could not test that page (${msg}). Check the address is public and loads in a browser, then try again.`;
+        error.hidden = false;
+      } finally {
+        window.clearInterval(ticker);
+        status.hidden = true;
+        button.disabled = false;
+      }
+    });
+
+    function render(json: any, target: string, strategy: string) {
+      const lh = json.lighthouseResult;
+      document.querySelector('[data-r-url]')!.textContent = lh?.finalDisplayedUrl ?? target;
+      document.querySelector('[data-r-device]')!.textContent = `${strategy === 'mobile' ? '📱 Mobile' : '🖥 Desktop'} · Lighthouse ${lh?.lighthouseVersion ?? ''}`;
+
+      const scoresBox = document.querySelector<HTMLElement>('[data-r-scores]')!;
+      scoresBox.replaceChildren();
+      const summary: string[] = [];
+      for (const [id, label] of CATEGORIES) {
+        const raw = lh?.categories?.[id]?.score;
+        if (raw == null) continue;
+        const score = Math.round(raw * 100);
+        summary.push(`${label}: ${score}`);
+        const card = el('div', 'score');
+        const wrap = el('div', 'ring__wrap');
+        const ring = el('div', `ring ${band(score)}`);
+        ring.style.setProperty('--v', String(score));
+        wrap.append(ring, el('span', 'ring__num', String(score)));
+        card.append(wrap, el('span', 'score__label', label));
+        scoresBox.append(card);
+      }
+
+      const vitalsBox = document.querySelector<HTMLElement>('[data-r-vitals]')!;
+      vitalsBox.replaceChildren();
+      const metrics = json.loadingExperience?.metrics ?? {};
+      let anyField = false;
+      for (const v of VITALS) {
+        const m = metrics[v.key];
+        if (!m) continue;
+        anyField = true;
+        const [cls, word] = VERDICT[m.category] ?? ['', m.category];
+        const card = el('div', `vital ${cls}`);
+        card.append(el('p', 'vital__name mono', v.name), el('p', 'vital__value', v.fmt(m.percentile)), el('p', 'vital__verdict', word));
+        vitalsBox.append(card);
+        summary.push(`${v.name.split(' ')[0]}: ${v.fmt(m.percentile)} (${word})`);
+      }
+      if (!anyField) {
+        vitalsBox.append(el('p', 'vital vital--empty', 'Not enough real-user data for this page yet (common on smaller sites). The lab scores above still show where it is slow.'));
+      }
+
+      // Failing audits with estimated savings, biggest first.
+      const audits = Object.values<any>(lh?.audits ?? {});
+      const savings = (a: any) => a.details?.overallSavingsMs ?? Math.max(0, ...Object.values<number>(a.metricSavings ?? {}));
+      const issues = audits
+        .filter((a) => a.score !== null && a.score < 0.9 && savings(a) > 0)
+        .sort((a, b) => savings(b) - savings(a))
+        .slice(0, 6);
+      const list = document.querySelector<HTMLElement>('[data-r-issues]')!;
+      list.replaceChildren();
+      if (!issues.length) list.append(el('li', '', 'No major problems found. Nice work! 🎉'));
+      for (const a of issues) {
+        const li = el('li');
+        const ms = savings(a);
+        li.append(el('span', '', a.title), el('span', 'issue__save mono', ms >= 50 ? `≈ ${(ms / 1000).toFixed(1)} s to save` : 'worth fixing'));
+        list.append(li);
+      }
+
+      const body = [`Hi ${PROFILE.firstName},`, '', `I ran your free speed test on ${target} (${strategy}):`, ...summary.map((s) => `- ${s}`), '', ...(issues.length ? ['Top issues:', ...issues.map((a) => `- ${a.title}`), ''] : []), 'Could you send me an estimate to fix this?'].join('\n');
+      document.querySelector<HTMLAnchorElement>('[data-r-cta]')!.href =
+        `mailto:${PROFILE.email}?subject=${encodeURIComponent(`Speed fix for ${new URL(target).hostname} ($${FREELANCE.rate}/h)`)}&body=${encodeURIComponent(body)}`;
+
+      report.hidden = false;
+      report.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  }
+  document.addEventListener('astro:page-load', initSpeedTest);
+</script>

@@ -1,0 +1,267 @@
+---
+// Freelance FAQ shown as resolved WordPress.org support threads, with a "Start a project" panel beside it.
+// The home page shows the first few threads and links to /hire/ for the rest.
+import { PROFILE, FREELANCE } from '@/data/profile';
+
+interface Props {
+  limit?: number;
+  level?: 'h2' | 'h3';
+}
+const { limit, level: Title = 'h3' } = Astro.props;
+const threads = limit ? FREELANCE.faq.slice(0, limit) : FREELANCE.faq;
+const more = FREELANCE.faq.length - threads.length;
+const mail = (subject: string) => `mailto:${PROFILE.email}?subject=${encodeURIComponent(subject)}`;
+---
+
+<div class="support">
+  <aside class="support__side" data-reveal>
+    <p class="support__eyebrow mono">// support forum</p>
+    <Title class="support__title">Freelance WordPress FAQ</Title>
+    <p class="support__text">
+      Questions clients ask before hiring me. Every thread is marked resolved. Got one that isn't? Send it over and I'll
+      reply within a day.
+    </p>
+    <div class="support__cta">
+      <span class="support__status mono"><span class="live-dot"></span> Open for freelance work</span>
+      <a href={mail('Freelance WordPress project')} class="btn btn--primary" data-magnetic>Start a project →</a>
+      <a href={mail('WordPress question')} class="support__ask">or just ask a question</a>
+    </div>
+  </aside>
+
+  <div class="forum" data-reveal style="--d:1">
+    <p class="forum__crumbs mono">
+      Support <span>»</span> Hire {PROFILE.firstName} <span>»</span> {FREELANCE.faq.length} topics
+    </p>
+    {
+      threads.map((item, i) => (
+        <details class="thread" name="hire-faq" open={i === 0}>
+          <summary class="thread__q">
+            <span class="thread__badge mono">✓ Resolved</span>
+            <span class="thread__text">{item.q}</span>
+            <span class="thread__icon" aria-hidden="true" />
+          </summary>
+          <div class="thread__a">
+            <span class="thread__avatar mono" aria-hidden="true">
+              {PROFILE.firstName[0]}
+            </span>
+            <div>
+              <p class="thread__who mono">{PROFILE.firstName} replied</p>
+              <p class="thread__reply">{item.a}</p>
+            </div>
+          </div>
+        </details>
+      ))
+    }
+    {
+      more > 0 && (
+        <a href="/hire/#faq" class="forum__more mono">
+          View all {FREELANCE.faq.length} topics, services and process →
+        </a>
+      )
+    }
+  </div>
+</div>
+
+<style>
+  .support {
+    display: grid;
+    grid-template-columns: 0.8fr 1.2fr;
+    gap: clamp(24px, 4vw, 48px);
+    align-items: start;
+  }
+  .support__side {
+    position: sticky;
+    top: 110px;
+  }
+  .support__eyebrow {
+    font-size: 13px;
+    color: var(--accent);
+  }
+  .support__title {
+    margin-top: 12px;
+    font-size: clamp(26px, 3vw, 36px);
+  }
+  .support__text {
+    margin-top: 14px;
+    color: var(--text-muted);
+  }
+  .support__cta {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 14px;
+    margin-top: 28px;
+    padding: 22px;
+    border: 1px solid var(--line-strong);
+    border-radius: var(--radius-lg);
+    background: var(--grad-ink);
+    color: #eef0f5;
+  }
+  .support__status {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 12.5px;
+    color: #a1a8b8;
+  }
+  .support__ask {
+    font-size: 14px;
+    color: #a1a8b8;
+  }
+  .support__ask:hover {
+    color: #fff;
+  }
+
+  .forum {
+    border: 1px solid var(--line);
+    border-radius: var(--radius-lg);
+    background: var(--bg-elev);
+    overflow: hidden;
+  }
+  .forum__crumbs {
+    padding: 13px 20px;
+    border-bottom: 1px solid var(--line);
+    font-size: 12px;
+    color: var(--text-faint);
+  }
+  .forum__crumbs span {
+    margin: 0 4px;
+  }
+  .forum__more {
+    display: block;
+    padding: 16px 20px;
+    border-top: 1px solid var(--line);
+    font-size: 13px;
+    color: var(--accent);
+    text-decoration: none;
+  }
+  .forum__more:hover {
+    background: var(--bg-elev-2);
+  }
+  .thread {
+    border-bottom: 1px solid var(--line);
+  }
+  .thread:last-of-type {
+    border-bottom: 0;
+  }
+  .thread__q {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 18px 20px;
+    cursor: pointer;
+    list-style: none;
+    transition: background-color 0.2s;
+  }
+  .thread__q::-webkit-details-marker {
+    display: none;
+  }
+  .thread__q:hover {
+    background: var(--bg-elev-2);
+  }
+  .thread[open] .thread__q {
+    background: var(--accent-soft);
+  }
+  .thread__badge {
+    flex-shrink: 0;
+    padding: 3px 8px;
+    border-radius: 6px;
+    background: color-mix(in srgb, var(--ok) 12%, transparent);
+    color: var(--ok);
+    font-size: 11px;
+  }
+  .thread__text {
+    flex: 1;
+    font-weight: 500;
+    line-height: 1.4;
+  }
+  .thread__icon {
+    position: relative;
+    flex-shrink: 0;
+    width: 14px;
+    height: 14px;
+  }
+  .thread__icon::before,
+  .thread__icon::after {
+    content: '';
+    position: absolute;
+    top: 6px;
+    left: 0;
+    width: 14px;
+    height: 2px;
+    border-radius: 2px;
+    background: var(--text-muted);
+    transition: transform 0.3s var(--ease-out);
+  }
+  .thread__icon::after {
+    transform: rotate(90deg);
+  }
+  .thread[open] .thread__icon::after {
+    transform: rotate(0);
+  }
+  .thread__a {
+    display: flex;
+    gap: 14px;
+    padding: 4px 20px 22px;
+    background: var(--accent-soft);
+    animation: thread-in 0.4s var(--ease-out);
+  }
+  .thread__avatar {
+    display: grid;
+    place-items: center;
+    flex-shrink: 0;
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    background: var(--grad-btn);
+    color: #fff;
+    font-size: 14px;
+    font-weight: 600;
+  }
+  .thread__who {
+    font-size: 12px;
+    color: var(--accent);
+  }
+  .thread__reply {
+    margin-top: 4px;
+    font-size: 15.5px;
+    color: var(--text-muted);
+  }
+  @keyframes thread-in {
+    from {
+      opacity: 0;
+      transform: translateY(-6px);
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .thread__a {
+      animation: none;
+    }
+  }
+
+  @media (max-width: 860px) {
+    .support {
+      grid-template-columns: 1fr;
+    }
+    .support__side {
+      position: static;
+    }
+  }
+  @media (max-width: 520px) {
+    .thread__q {
+      flex-wrap: wrap;
+      gap: 8px 12px;
+      padding: 16px;
+    }
+    .thread__text {
+      flex-basis: calc(100% - 30px);
+      order: 2;
+    }
+    .thread__icon {
+      order: 3;
+    }
+    .thread__a {
+      padding: 4px 16px 20px;
+    }
+  }
+</style>

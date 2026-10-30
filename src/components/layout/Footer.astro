@@ -9,6 +9,8 @@ const year = new Date().getFullYear();
       <span class="c-fn">wp_footer</span>(); <span class="c-comment">// © {year} {PROFILE.name}</span>
     </p>
     <ul class="footer__links">
+      <li><a href="/hire/">Hire me</a></li>
+      <li><a href="/free-wordpress-speed-test/">Free speed test</a></li>
       <li><a href={`mailto:${PROFILE.email}`}>Email</a></li>
       <li><a href={PROFILE.links.linkedin} target="_blank" rel="noopener">LinkedIn</a></li>
       <li><a href={PROFILE.links.github} target="_blank" rel="noopener">GitHub</a></li>
@@ -45,7 +47,8 @@ const year = new Date().getFullYear();
   }
   .footer__links {
     display: flex;
-    gap: 20px;
+    flex-wrap: wrap;
+    gap: 8px 20px;
     list-style: none;
   }
   .footer__links a {

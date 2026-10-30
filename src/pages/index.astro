@@ -9,8 +9,9 @@ import Contact from '@/components/sections/Contact.astro';
 import OffTheClock from '@/components/sections/OffTheClock.astro';
 import QueryDemo from '@/components/sections/QueryDemo.astro';
 import Mindset from '@/components/sections/Mindset.astro';
+import Hire from '@/components/sections/Hire.astro';
 import BootIntro from '@/components/ui/BootIntro.astro';
-import { PROFILE } from '@/data/profile';
+import { PROFILE, FREELANCE } from '@/data/profile';
 import { SITE } from '@/config/site';
 import { SKILL_GROUPS } from '@/data/skills';
 import { EXPERIENCE } from '@/data/experience';
@@ -26,14 +27,30 @@ const personSchema = {
   url: Astro.site?.href,
   address: { '@type': 'PostalAddress', addressLocality: 'Noida', addressRegion: 'Uttar Pradesh', addressCountry: 'IN' },
   worksFor: { '@type': 'Organization', name: EXPERIENCE[0].company },
-  knowsAbout: SKILL_GROUPS.flatMap((g) => g.items).slice(0, 25),
+  knowsAbout: [...FREELANCE.services.map((s) => s.heading), ...SKILL_GROUPS.flatMap((g) => g.items)].slice(0, 35),
   homeLocation: { '@type': 'Place', name: `${PROFILE.roots}, India` },
   knowsLanguage: ['English', 'Hindi', 'Kumaoni'],
   sameAs: [PROFILE.links.linkedin, PROFILE.links.github, PROFILE.links.wporg],
+  hasOccupation: { '@type': 'Occupation', name: 'Freelance WordPress Developer', skills: FREELANCE.services.map((s) => s.heading).join(', ') },
+  makesOffer: FREELANCE.services.map((s) => ({
+    '@type': 'Offer',
+    itemOffered: { '@type': 'Service', name: s.heading, url: new URL(`/hire/#${s.slug}`, Astro.site).href },
+  })),
+};
+
+// Tells search and AI engines what the site is and who it belongs to.
+const siteSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'WebSite',
+  name: SITE.name,
+  url: Astro.site?.href,
+  description: SITE.description,
+  inLanguage: 'en',
+  author: { '@type': 'Person', name: PROFILE.name },
 };
 ---
 
-<BaseLayout type="profile" jsonLd={personSchema}>
+<BaseLayout type="profile" jsonLd={[personSchema, siteSchema]}>
   <BootIntro />
   <Hero />
   <About />
@@ -42,6 +59,7 @@ const personSchema = {
   <Experience />
   <QueryDemo />
   <Projects />
+  <Hire />
   <OffTheClock />
   <Contact />
 </BaseLayout>

@@ -1,0 +1,70 @@
+---
+// The numbers strip shown on the home "Hire me" section and the /hire/ page.
+import { STATS, TEAMS, FREELANCE } from '@/data/profile';
+
+const facts = [
+  { value: `${FREELANCE.delivered}+`, label: 'Websites delivered' },
+  { value: `${STATS[0].value}${STATS[0].suffix}`, label: 'Years with WordPress' },
+  { value: String(TEAMS.length), label: 'Countries worked with' },
+  { value: '1', label: 'Developer, start to finish' },
+];
+---
+
+<ul class="facts" data-reveal>
+  {
+    facts.map((f) => (
+      <li>
+        <span class="facts__value">{f.value}</span>
+        <span class="facts__label mono">{f.label}</span>
+      </li>
+    ))
+  }
+</ul>
+
+<style>
+  .facts {
+    list-style: none;
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    margin-top: clamp(28px, 4vw, 40px);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-lg);
+    background: var(--surface);
+    overflow: hidden;
+  }
+  .facts li {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    padding: clamp(18px, 2.5vw, 28px);
+    border-left: 1px solid var(--line);
+  }
+  .facts li:first-child {
+    border-left: 0;
+  }
+  .facts__value {
+    font-size: clamp(32px, 4.4vw, 52px);
+    font-weight: 600;
+    line-height: 1;
+    letter-spacing: -0.03em;
+    background: var(--grad-text);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+  .facts__label {
+    font-size: 12px;
+    color: var(--text-faint);
+  }
+  @media (max-width: 860px) {
+    .facts {
+      grid-template-columns: repeat(2, 1fr);
+    }
+    .facts li:nth-child(3) {
+      border-left: 0;
+    }
+    .facts li:nth-child(n + 3) {
+      border-top: 1px solid var(--line);
+    }
+  }
+</style>

@@ -2,10 +2,10 @@
 export const SITE = {
   name: 'Maneesh Singh Dhanik',
   shortName: 'Maneesh',
-  title: 'Maneesh Singh Dhanik — Software Engineer & WordPress Developer',
+  title: 'Maneesh Singh Dhanik — Freelance WordPress Developer & Software Engineer',
   description:
-    'Software engineer and WordPress developer with 6+ years building fast, scalable platforms in PHP, React and Gutenberg, with an AI-assisted, performance-first workflow.',
-  locale: 'en_IN',
+    'Freelance WordPress developer for US, UK, Australian and NZ businesses. 100+ sites, 6+ years, from $10/hour: themes, plugins, WooCommerce, speed and bug fixes.',
+  locale: 'en_GB',
   lang: 'en',
   twitterHandle: '',
 };
@@ -18,6 +18,7 @@ export const NAV = [
   { label: 'Skills', href: '/#skills' },
   { label: 'Experience', href: '/#experience' },
   { label: 'Projects', href: '/projects/' },
+  { label: 'Services', href: '/hire/' },
   { label: 'CV', href: '/cv/' },
   { label: 'Contact', href: '/#contact' },
 ];

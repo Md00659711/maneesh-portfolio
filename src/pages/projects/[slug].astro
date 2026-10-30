@@ -28,13 +28,14 @@ const schema = {
   name: title,
   description: summary,
   url: new URL(Astro.url.pathname, Astro.site).href,
-  author: { '@type': 'Person', name: PROFILE.name },
+  author: { '@type': 'Person', name: PROFILE.name, url: Astro.site?.href, jobTitle: 'WordPress Developer' },
+  about: 'WordPress development',
   keywords: stack.join(', '),
   ...(url ? { sameAs: url } : {}),
 };
 ---
 
-<BaseLayout title={`${title} — Case Study`} description={summary} type="article" jsonLd={schema}>
+<BaseLayout title={`${title} — WordPress Case Study`} description={summary} type="article" jsonLd={schema}>
   <article class="cs" style={`--card-accent:${accent}`}>
     <header class="cs__hero">
       <div class="container">

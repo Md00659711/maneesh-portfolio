@@ -9,7 +9,7 @@ highlights:
   - Algolia search across the full product catalogue
   - Custom WooCommerce product and checkout flows
   - ACF flexible content for marketing pages
-order: 2
+order: 4
 accent: '#3ddc97'
 ---
 

@@ -1,0 +1,87 @@
+---
+// Home-page teaser for freelance work. The full, search-focused version lives at /hire/.
+import Block from '@/components/ui/Block.astro';
+import Facts from '@/components/hire/Facts.astro';
+import ServiceCards from '@/components/hire/ServiceCards.astro';
+import SupportForum from '@/components/hire/SupportForum.astro';
+import { FREELANCE } from '@/data/profile';
+---
+
+<Block
+  id="hire"
+  block="maneesh/hire-me"
+  eyebrow="// freelance WordPress developer"
+  title={`Hire a WordPress developer <em>who has shipped ${FREELANCE.delivered}+ sites.</em>`}
+>
+  <p class="hire__lead" data-reveal>
+    Custom themes, plugins, WooCommerce, speed optimisation, bug fixing and ongoing WordPress support for businesses in
+    the US, UK, Australia and New Zealand. One freelance developer who handles your site end to end.
+  </p>
+  <div class="hire__deal" data-reveal>
+    <p class="hire__price mono"><strong>${FREELANCE.rate}</strong>/hour · free estimate · 7 days free support</p>
+    <a href="/hire/#pricing" class="btn btn--primary" data-magnetic>See pricing →</a>
+    <a href="/free-wordpress-speed-test/" class="btn" data-magnetic>⚡ Free speed test</a>
+  </div>
+
+  <Facts />
+
+  <div class="plugins-head" data-reveal>
+    <h3 class="plugins-head__title">WordPress development services</h3>
+    <a href="/hire/" class="plugins-head__meta mono">{FREELANCE.services.length} services · all active · details →</a>
+  </div>
+  <ServiceCards />
+
+  <div class="hire__forum">
+    <SupportForum limit={4} />
+  </div>
+</Block>
+
+<style>
+  .hire__lead {
+    max-width: 640px;
+    margin-top: calc(clamp(36px, 6vw, 64px) * -0.5);
+    font-size: clamp(17px, 1.6vw, 19px);
+    color: var(--text-muted);
+  }
+  .hire__deal {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 12px 16px;
+    margin-top: 24px;
+  }
+  .hire__price {
+    padding: 10px 16px;
+    border: 1px solid color-mix(in srgb, var(--accent) 45%, var(--line));
+    border-radius: 999px;
+    background: var(--accent-soft);
+    font-size: 13px;
+    color: var(--text-muted);
+  }
+  .hire__price strong {
+    font-size: 16px;
+    color: var(--accent);
+  }
+  .plugins-head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 8px 16px;
+    margin-top: clamp(48px, 7vw, 80px);
+  }
+  .plugins-head__title {
+    font-size: clamp(22px, 2.6vw, 30px);
+  }
+  .plugins-head__meta {
+    font-size: 12px;
+    color: var(--text-faint);
+    text-decoration: none;
+  }
+  .plugins-head__meta:hover {
+    color: var(--accent);
+  }
+  .hire__forum {
+    margin-top: clamp(56px, 8vw, 96px);
+  }
+</style>

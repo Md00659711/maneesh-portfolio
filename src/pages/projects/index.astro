@@ -7,7 +7,7 @@ import Breadcrumbs from '@/components/ui/Breadcrumbs.astro';
 const projects = (await getCollection('projects')).sort((a, b) => a.data.order - b.data.order);
 ---
 
-<BaseLayout title="Projects" description="WordPress, WooCommerce and Gutenberg projects by Maneesh Singh Dhanik: case studies with the stack, the challenge and the results.">
+<BaseLayout title="WordPress Projects & Case Studies" description="WordPress Multisite, WooCommerce, multilingual and Gutenberg React block projects by Maneesh Singh Dhanik: case studies with the stack, the challenge and the results.">
   <section class="section page">
     <div class="container">
       <Breadcrumbs items={[{ label: 'Projects', href: '/projects/' }]} />
